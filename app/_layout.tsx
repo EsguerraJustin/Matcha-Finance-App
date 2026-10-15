@@ -21,6 +21,8 @@ import { useFonts } from 'expo-font';
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 
 import { AuroraBackground } from '../src/components/glass/AuroraBackground';
+import { Toast } from '../src/components/ui/Toast';
+import { useToastStore, hideToast } from '../src/state/toastStore';
 import { useSettingsStore } from '../src/state/settingsStore';
 import { getDatabase } from '../src/db/client';
 import { seedDatabase } from '../src/db/seed';
@@ -32,6 +34,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 export default function RootLayout() {
   const hydrate = useSettingsStore((state) => state.hydrate);
   const theme = useSettingsStore((state) => state.theme);
+  const toast = useToastStore();
   const [ready, setReady] = useState(false);
 
   const [fontsLoaded, fontError] = useFonts({
@@ -75,6 +78,15 @@ export default function RootLayout() {
             }}
           />
         </View>
+
+        <Toast
+          visible={toast.visible}
+          message={toast.message}
+          actionLabel={toast.actionLabel}
+          onAction={toast.onAction}
+          tone={toast.tone}
+          onHide={hideToast}
+        />
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

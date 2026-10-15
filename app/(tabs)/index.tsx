@@ -7,9 +7,10 @@
  * insight sentence.
  */
 
+import { Pressable } from 'react-native';
 import { StyleSheet, View } from 'react-native';
 import { MoreHorizontal } from 'lucide-react-native';
-import { Pressable } from 'react-native';
+import { router } from 'expo-router';
 
 import { GlassCard } from '../../src/components/glass/GlassCard';
 import { ScreenScaffold } from '../../src/components/ui/ScreenScaffold';
@@ -27,6 +28,7 @@ export default function HomeScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="More"
+          onPress={() => router.push('/more')}
           style={styles.moreButton}
           hitSlop={8}
         >
