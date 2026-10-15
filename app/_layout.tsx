@@ -26,6 +26,7 @@ import { useToastStore, hideToast } from '../src/state/toastStore';
 import { useSettingsStore } from '../src/state/settingsStore';
 import { getDatabase } from '../src/db/client';
 import { seedDatabase } from '../src/db/seed';
+import { runBootRoutine } from '../src/db/boot';
 
 SplashScreen.preventAutoHideAsync().catch(() => {
   // Already hidden — nothing to do.
@@ -49,6 +50,8 @@ export default function RootLayout() {
       const db = await getDatabase();
       await seedDatabase(db);
       await hydrate();
+      // Purge old soft deletes, catch up recurring rules, re-arm thresholds.
+      await runBootRoutine(db);
     } finally {
       setReady(true);
       SplashScreen.hideAsync().catch(() => undefined);

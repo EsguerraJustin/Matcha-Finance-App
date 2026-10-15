@@ -7,7 +7,7 @@
  */
 
 import { Pressable, StyleSheet, View } from 'react-native';
-import { ChevronRight, Layers, Recycle, Repeat2, ShieldCheck, Target, Wallet } from 'lucide-react-native';
+import { ChevronRight, Layers, PiggyBank, Repeat2, Target, Wallet } from 'lucide-react-native';
 import { router } from 'expo-router';
 
 import { GlassSurface } from '../src/components/glass/GlassSurface';
@@ -27,6 +27,38 @@ interface MenuItem {
 }
 
 const MENU: MenuItem[] = [
+  {
+    key: 'allowance',
+    label: 'Allowance',
+    hint: 'Money in, and the monthly overview',
+    icon: Wallet,
+    tint: '#CDEFE3',
+    onPress: () => router.push('/allowance'),
+  },
+  {
+    key: 'budgets',
+    label: 'Budgets',
+    hint: 'Weekly, monthly, custom and category limits',
+    icon: PiggyBank,
+    tint: '#FFF3C4',
+    onPress: () => router.push('/budgets'),
+  },
+  {
+    key: 'recurring',
+    label: 'Recurring',
+    hint: 'Phone load, boarding house, weekly allowance',
+    icon: Repeat2,
+    tint: '#CFE8F5',
+    onPress: () => router.push('/recurring'),
+  },
+  {
+    key: 'goals',
+    label: 'Savings goals',
+    hint: 'Small targets, big motivation',
+    icon: Target,
+    tint: '#FAD4E1',
+    onPress: () => router.push('/goals'),
+  },
   {
     key: 'categories',
     label: 'Categories',
@@ -49,7 +81,7 @@ export default function MoreScreen() {
       </GlassSurface>
 
       <AppText variant="footnote" color={colors.textMuted} center>
-        Budgets, allowance, recurring bills, goals and backup arrive as their phases land.
+        Backup, app lock and Settings arrive with Phase 5.
       </AppText>
     </ScreenScaffold>
   );
@@ -84,9 +116,6 @@ function MenuRow({ item, first, last }: { item: MenuItem; first: boolean; last: 
     </Pressable>
   );
 }
-
-/** Icons reserved for the phases still to come — kept so the menu grows cleanly. */
-export const UPCOMING_MENU_ICONS = { Recycle, Repeat2, ShieldCheck, Target, Wallet };
 
 const styles = StyleSheet.create({
   list: {

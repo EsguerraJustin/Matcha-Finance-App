@@ -39,6 +39,7 @@ import {
   updateExpense,
 } from '../src/db/repositories/expensesRepo';
 import { captureReceipt, deleteReceipt, pickReceipt, receiptFile } from '../src/lib/receipts';
+import { evaluateBudgetThresholds, resolveBudgetId } from '../src/db/repositories/budgetGlue';
 import {
   loggedMessage,
   numpadCents,
@@ -70,6 +71,7 @@ export default function AddExpenseSheetRoute() {
   const [paymentMethodId, setPaymentMethodId] = useState<string | null>(null);
   const [note, setNote] = useState('');
   const [receiptPath, setReceiptPath] = useState<string | null>(null);
+  const [explicitBudgetId, setExplicitBudgetId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [loadedForEdit, setLoadedForEdit] = useState<string | null>(null);
@@ -95,6 +97,7 @@ export default function AddExpenseSheetRoute() {
         setPaymentMethodId(existing.payment_method_id);
         setNote(existing.note ?? '');
         setReceiptPath(existing.receipt_path);
+        setExplicitBudgetId(existing.budget_id);
       });
       return;
     }
@@ -104,6 +107,7 @@ export default function AddExpenseSheetRoute() {
     setSpentOn(today);
     setReceiptPath(null);
     setNote('');
+    setExplicitBudgetId(null);
 
     // Smart defaults: last-used payment method, plus category/type by hour.
     void (async () => {
@@ -191,6 +195,9 @@ export default function AddExpenseSheetRoute() {
       setSaving(true);
       try {
         const previousReceipt = editingId ? (await getExpense(db, editingId))?.receipt_path ?? null : null;
+        // Business rule 2: attach to the budget that owns this date, unless
+        // the user pinned one explicitly.
+        const budgetId = explicitBudgetId ?? (await resolveBudgetId(db, spentOn));
 
         const id =
           editingId
@@ -202,6 +209,7 @@ export default function AddExpenseSheetRoute() {
                 payment_method_id: paymentMethodId ?? undefined,
                 note: note.trim() || null,
                 receipt_path: receiptPath,
+                budget_id: budgetId,
               }),
               editingId)
             : await createExpense(db, {
@@ -212,10 +220,14 @@ export default function AddExpenseSheetRoute() {
                 payment_method_id: paymentMethodId!,
                 note: note.trim() || null,
                 receipt_path: receiptPath,
+                budget_id: budgetId,
               });
 
         // Replacing a receipt file orphans the old one.
         if (previousReceipt && previousReceipt !== receiptPath) deleteReceipt(previousReceipt);
+
+        // Business rule 4: re-evaluate thresholds after every write.
+        await evaluateBudgetThresholds(db, today);
 
         successHaptic();
 

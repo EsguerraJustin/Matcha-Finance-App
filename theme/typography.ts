@@ -36,6 +36,7 @@ export const radius = {
   input: 16,
   list: 20,
   control: 12,
+  pill: 999,
 } as const;
 
 /** 8-pt grid (Section 4.4). */
