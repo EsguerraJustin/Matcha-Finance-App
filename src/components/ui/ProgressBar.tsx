@@ -29,10 +29,10 @@ function ProgressBarImpl({
   style,
   accessibilityLabel,
 }: ProgressBarProps) {
-  const { reduceMotion } = useAppTheme();
+  const { reduceMotion, palette } = useAppTheme();
   const clamped = Math.max(0, Math.min(1, Number.isFinite(progress) ? progress : 0));
   const over = progress > 1;
-  const tone = fillColor ?? (over ? colors.dangerBg : colors.matcha500);
+  const tone = fillColor ?? (over ? palette.dangerBg : colors.matcha500);
 
   return (
     <View

@@ -12,9 +12,8 @@ import { GlassSurface } from '../glass/GlassSurface';
 import { GlassButton } from '../glass/GlassButton';
 import { AppText } from '../ui/AppText';
 import { ChipRow, type ChipRowItem } from '../expense/ChipRow';
-import { categoryTint } from '../../hooks/useAppTheme';
+import { categoryTint, usePalette } from '../../hooks/useAppTheme';
 import type { CategoryWithTypes } from '../../db/repositories/categoriesRepo';
-import { colors } from '../../../theme/colors';
 import { spacing } from '../../../theme/typography';
 
 export interface BulkActionBarProps {
@@ -27,6 +26,7 @@ export interface BulkActionBarProps {
 }
 
 export function BulkActionBar({ count, categories, onDelete, onChangeCategory, onSelectAll, onClear }: BulkActionBarProps) {
+  const palette = usePalette();
   const [pickingCategory, setPickingCategory] = useState(false);
 
   const categoryChips: ChipRowItem[] = useMemo(
@@ -41,10 +41,10 @@ export function BulkActionBar({ count, categories, onDelete, onChangeCategory, o
           {count} selected
         </AppText>
         <View style={styles.headerActions}>
-          <AppText variant="caption" color={colors.matcha700} accessibilityRole="button" onPress={onSelectAll}>
+          <AppText variant="caption" color={palette.emphasis} accessibilityRole="button" onPress={onSelectAll}>
             Select all
           </AppText>
-          <AppText variant="caption" color={colors.matcha700} accessibilityRole="button" onPress={onClear}>
+          <AppText variant="caption" color={palette.emphasis} accessibilityRole="button" onPress={onClear}>
             Done
           </AppText>
         </View>

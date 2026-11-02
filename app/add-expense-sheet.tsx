@@ -18,7 +18,7 @@ import { AppText, MoneyText } from '../src/components/ui/AppText';
 import { GlassInput } from '../src/components/ui/GlassInput';
 import { AmountNumpad } from '../src/components/expense/AmountNumpad';
 import { ChipRow, type ChipRowItem } from '../src/components/expense/ChipRow';
-import { categoryTint } from '../src/hooks/useAppTheme';
+import { categoryTint, usePalette } from '../src/hooks/useAppTheme';
 import { useAddExpenseStore } from '../src/state/addExpenseStore';
 import { showToast } from '../src/state/toastStore';
 import { useDb, useDbQuery } from '../src/state/dbStore';
@@ -53,6 +53,7 @@ import { spacing } from '../theme/typography';
 import { successHaptic } from '../src/lib/haptics';
 
 export default function AddExpenseSheetRoute() {
+  const palette = usePalette();
   const open = useAddExpenseStore((state) => state.open);
   const hide = useAddExpenseStore((state) => state.hide);
   const editingId = useAddExpenseStore((state) => state.editingId);
@@ -300,14 +301,14 @@ export default function AddExpenseSheetRoute() {
         {/* Amount ------------------------------------------------------ */}
         <View style={styles.amountBlock}>
           <View style={styles.amountRow}>
-            <AppText variant="title2" color={colors.textMuted}>
+            <AppText variant="title2" color={palette.textMuted}>
               {currencySymbol}
             </AppText>
             <AppText variant="largeTitle" numeric accessibilityLabel={`Amount ${(cents ?? 0) / 100}`} style={styles.amount}>
               {formatDigits(digits)}
             </AppText>
           </View>
-          <AppText variant="footnote" color={colors.textMuted}>
+          <AppText variant="footnote" color={palette.textMuted}>
             {spentOn === today ? 'Today' : formatHumanDate(spentOn)} · {activeCategory?.name ?? 'Pick a category'}
           </AppText>
         </View>
@@ -317,7 +318,7 @@ export default function AddExpenseSheetRoute() {
           <AmountNumpad digits={digits} onChange={setDigits} style={styles.numpad} />
 
           <View style={styles.previewColumn}>
-            <AppText variant="caption" color={colors.textMuted}>
+            <AppText variant="caption" color={palette.textMuted}>
               Preview
             </AppText>
             <MoneyText cents={cents ?? 0} variant="title2" />
@@ -332,15 +333,15 @@ export default function AddExpenseSheetRoute() {
                 <Image source={{ uri: receiptFile(receiptPath).uri }} style={styles.receiptPreview} />
               ) : (
                 <View style={styles.receiptEmpty}>
-                  <ImageIcon size={20} strokeWidth={1.75} color={colors.matcha700} />
-                  <Camera size={14} strokeWidth={1.75} color={colors.matcha700} />
+                  <ImageIcon size={20} strokeWidth={1.75} color={palette.emphasis} />
+                  <Camera size={14} strokeWidth={1.75} color={palette.emphasis} />
                 </View>
               )}
             </Pressable>
 
             {receiptPath ? (
               <Pressable onPress={handleClearReceipt} accessibilityRole="button" accessibilityLabel="Remove receipt photo" hitSlop={8}>
-                <AppText variant="caption" color={colors.dangerText}>
+                <AppText variant="caption" color={palette.dangerText}>
                   Remove
                 </AppText>
               </Pressable>
@@ -387,7 +388,7 @@ export default function AddExpenseSheetRoute() {
             <View style={styles.suggestions}>
               {noteSuggestions.slice(0, 3).map((suggestion) => (
                 <Pressable key={suggestion} onPress={() => setNote(suggestion)} accessibilityRole="button">
-                  <AppText variant="caption" color={colors.matcha700}>
+                  <AppText variant="caption" color={palette.emphasis}>
                     {suggestion}
                   </AppText>
                 </Pressable>
@@ -398,7 +399,7 @@ export default function AddExpenseSheetRoute() {
 
         {/* Actions ------------------------------------------------------ */}
         {errors.amount ? (
-          <AppText variant="footnote" color={colors.dangerText}>
+          <AppText variant="footnote" color={palette.dangerText}>
             {errors.amount}
           </AppText>
         ) : null}
@@ -442,14 +443,15 @@ function formatDigits(digits: string): string {
 }
 
 function Section({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
+  const palette = usePalette();
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <AppText variant="footnote" color={colors.textMuted}>
+        <AppText variant="footnote" color={palette.textMuted}>
           {label}
         </AppText>
         {error ? (
-          <AppText variant="caption" color={colors.dangerText}>
+          <AppText variant="caption" color={palette.dangerText}>
             {error}
           </AppText>
         ) : null}

@@ -20,6 +20,7 @@ import { ScreenScaffold } from '../src/components/ui/ScreenScaffold';
 import { ProgressBar } from '../src/components/ui/ProgressBar';
 import { GlassSegmented } from '../src/components/glass/GlassSegmented';
 import { useDb, useDbQuery } from '../src/state/dbStore';
+import { usePalette } from '../src/hooks/useAppTheme';
 import { showToast } from '../src/state/toastStore';
 import { useSettingsStore } from '../src/state/settingsStore';
 import { formatMonthLabel, monthRangeISO, relativeDayLabel, todayISO } from '../src/lib/date';
@@ -33,7 +34,6 @@ import {
   type AllowanceWithTotals,
 } from '../src/db/repositories/allowancesRepo';
 import { createRecurringRule } from '../src/db/repositories/recurringRepo';
-import { colors } from '../theme/colors';
 import { spacing } from '../theme/typography';
 
 type RecurOption = 'none' | 'weekly' | 'monthly';
@@ -45,6 +45,7 @@ const RECUR_OPTIONS: ReadonlyArray<{ value: RecurOption; label: string }> = [
 ];
 
 export default function AllowanceScreen() {
+  const palette = usePalette();
   const db = useDb();
   const today = todayISO();
   const monthStartsOn = useSettingsStore((state) => state.monthStartsOn);
@@ -110,7 +111,7 @@ export default function AllowanceScreen() {
   return (
     <ScreenScaffold title="Allowance" subtitle={formatMonthLabel(cycle.start)}>
       <GlassCard fill="fillTintGreen" padding={16}>
-        <AppText variant="footnote" color={colors.textMuted}>
+        <AppText variant="footnote" color={palette.textMuted}>
           This month
         </AppText>
         <MoneyText cents={overview.data.net_cents} variant="largeTitle" style={styles.heroAmount} />
@@ -121,19 +122,19 @@ export default function AllowanceScreen() {
         />
         <View style={styles.statRow}>
           <View style={styles.stat}>
-            <AppText variant="caption" color={colors.textMuted}>
+            <AppText variant="caption" color={palette.textMuted}>
               In
             </AppText>
             <MoneyText cents={overview.data.allowance_cents} variant="subhead" />
           </View>
           <View style={styles.stat}>
-            <AppText variant="caption" color={colors.textMuted}>
+            <AppText variant="caption" color={palette.textMuted}>
               Out
             </AppText>
             <MoneyText cents={overview.data.spent_cents} variant="subhead" />
           </View>
           <View style={styles.stat}>
-            <AppText variant="caption" color={colors.textMuted}>
+            <AppText variant="caption" color={palette.textMuted}>
               Runway
             </AppText>
             <AppText variant="subhead">
@@ -141,7 +142,7 @@ export default function AllowanceScreen() {
             </AppText>
           </View>
         </View>
-        <AppText variant="caption" color={colors.textMuted}>
+        <AppText variant="caption" color={palette.textMuted}>
           {runwayCopy(overview.data.runwayDays, overview.data.net_cents)}
         </AppText>
       </GlassCard>
@@ -166,7 +167,7 @@ export default function AllowanceScreen() {
               <View style={styles.entryRow}>
                 <View style={styles.entryText}>
                   <AppText variant="subhead">{allowance.source ?? 'Allowance'}</AppText>
-                  <AppText variant="caption" color={colors.textMuted}>
+                  <AppText variant="caption" color={palette.textMuted}>
                     {relativeDayLabel(allowance.received_on, today)}
                     {allowance.recurring_rule_id ? ' · recurring' : ''}
                     {allowance.notes ? ` · ${allowance.notes}` : ''}
@@ -179,7 +180,7 @@ export default function AllowanceScreen() {
                   accessibilityLabel={`Delete ${allowance.source ?? 'allowance'}`}
                   hitSlop={8}
                 >
-                  <Trash2 size={18} strokeWidth={1.75} color={colors.dangerText} />
+                  <Trash2 size={18} strokeWidth={1.75} color={palette.dangerText} />
                 </Pressable>
               </View>
             </GlassCard>

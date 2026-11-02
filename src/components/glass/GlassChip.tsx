@@ -49,7 +49,7 @@ function GlassChipImpl({
   style,
   testID,
 }: GlassChipProps) {
-  const { glass } = useAppTheme();
+  const { glass, palette } = useAppTheme();
 
   const handlePress = useCallback(() => {
     selectionHaptic();
@@ -71,14 +71,15 @@ function GlassChipImpl({
       accessibilityState={{ selected, disabled }}
       accessibilityLabel={label}
       testID={testID}
+      hitSlop={size === 'small' ? { top: 9, bottom: 9 } : { top: 5, bottom: 5 }}
       style={({ pressed }) => [
         styles.chip,
         {
           height,
           paddingHorizontal: size === 'small' ? 12 : 16,
           borderRadius: radius.chip,
-          backgroundColor: selected ? background : pressed ? colors.matcha300 : background,
-          borderColor: selected ? withAlpha(colors.matcha500, 0.55) : glass.border,
+          backgroundColor: selected ? background : pressed ? (palette.isDark ? glass.fillTintGreen : colors.matcha300) : background,
+          borderColor: selected ? withAlpha(palette.primary, 0.55) : glass.border,
           opacity: disabled ? 0.5 : 1,
           transform: [{ scale: pressed ? 0.97 : 1 }],
         },
@@ -91,7 +92,9 @@ function GlassChipImpl({
           style={[
             styles.label,
             {
-              color: colors.matcha900,
+              // Pastel-tinted chips stay light in both themes, so they keep the
+              // dark ink; glass-fill chips follow the palette.
+              color: tint && !selected ? colors.matcha900 : palette.text,
               fontSize: size === 'small' ? typeScale.footnote.fontSize : typeScale.subhead.fontSize,
               fontWeight: selected ? '700' : '600',
             },

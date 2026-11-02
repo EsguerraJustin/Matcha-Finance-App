@@ -24,7 +24,7 @@ import { GlassInput } from '../../src/components/ui/GlassInput';
 import { ExpenseRow } from '../../src/components/expense/ExpenseRow';
 import { FilterSheet } from '../../src/components/expense/FilterSheet';
 import { BulkActionBar } from '../../src/components/expense/BulkActionBar';
-import { useAppTheme } from '../../src/hooks/useAppTheme';
+import { useAppTheme, usePalette } from '../../src/hooks/useAppTheme';
 import { useDb, useDbQuery } from '../../src/state/dbStore';
 import { showToast } from '../../src/state/toastStore';
 import { openAddExpense } from '../../src/state/addExpenseStore';
@@ -62,7 +62,7 @@ import { spacing } from '../../theme/typography';
 
 export default function HistoryScreen() {
   const db = useDb();
-  const { glass } = useAppTheme();
+  const { glass, palette } = useAppTheme();
   const today = todayISO();
   const weekStartsOn = useSettingsStore((state) => state.weekStartsOn) as WeekStart;
   const monthStartsOn = useSettingsStore((state) => state.monthStartsOn);
@@ -181,7 +181,7 @@ export default function HistoryScreen() {
             style={styles.iconButton}
             hitSlop={8}
           >
-            <SlidersHorizontal size={22} strokeWidth={1.75} color={colors.matcha700} />
+            <SlidersHorizontal size={22} strokeWidth={1.75} color={palette.emphasis} />
             {activeFilterCount ? (
               <View style={styles.badge}>
                 <AppText variant="caption" color={colors.matcha900}>
@@ -203,12 +203,12 @@ export default function HistoryScreen() {
 
         {hasActiveFilters(filters) ? (
           <View style={styles.filterSummary}>
-            <AppText variant="caption" color={colors.matcha700}>
+            <AppText variant="caption" color={palette.emphasis}>
               {activeFilterCount} filter{activeFilterCount === 1 ? '' : 's'} on
             </AppText>
             <AppText
               variant="caption"
-              color={colors.matcha700}
+              color={palette.emphasis}
               accessibilityRole="button"
               onPress={() => setFilters(EMPTY_FILTERS)}
             >
@@ -238,7 +238,7 @@ export default function HistoryScreen() {
               removeClippedSubviews
               renderSectionHeader={({ section }) => (
                 <View style={[styles.dayHeader, { backgroundColor: glass.fillStrong }]}>
-                  <AppText variant="footnote" color={colors.textMuted}>
+                  <AppText variant="footnote" color={palette.textMuted}>
                     {section.title}
                   </AppText>
                   <MoneyText cents={section.totalCents} variant="footnote" />
@@ -313,6 +313,7 @@ interface SwipeRowProps {
 }
 
 function SwipeableRow({ expense, onOpen, onDelete, onDuplicate, onLongPress }: SwipeRowProps) {
+  const palette = usePalette();
   return (
     <ReanimatedSwipeable
       friction={2}
@@ -325,7 +326,7 @@ function SwipeableRow({ expense, onOpen, onDelete, onDuplicate, onLongPress }: S
           side="right"
           icon={<CopyPlus size={22} strokeWidth={1.75} color={colors.matcha900} />}
           label="Copy"
-          background={colors.matcha100}
+          background={palette.cardFill}
           onPress={() => {
             methods.close();
             onDuplicate();
@@ -337,9 +338,9 @@ function SwipeableRow({ expense, onOpen, onDelete, onDuplicate, onLongPress }: S
       renderLeftActions={(progress, translation, methods: SwipeableMethods) => (
         <SwipeAction
           side="left"
-          icon={<Trash2 size={20} strokeWidth={1.75} color={colors.dangerText} />}
+          icon={<Trash2 size={20} strokeWidth={1.75} color={palette.dangerText} />}
           label="Delete"
-          background={colors.dangerBg}
+          background={palette.dangerBg}
           onPress={() => {
             methods.close();
             onDelete();
@@ -371,6 +372,7 @@ function SwipeAction({
   translation: SharedValue<number>;
   progress: SharedValue<number>;
 }) {
+  const palette = usePalette();
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: progress.value,
     transform: [{ translateX: side === 'left' ? translation.value : -translation.value }],
@@ -381,7 +383,7 @@ function SwipeAction({
       <Animated.View style={animatedStyle}>
         {icon}
       </Animated.View>
-      <AppText variant="caption" color={side === 'left' ? colors.dangerText : colors.matcha900}>
+      <AppText variant="caption" color={side === 'left' ? palette.dangerText : palette.text}>
         {label}
       </AppText>
     </Pressable>

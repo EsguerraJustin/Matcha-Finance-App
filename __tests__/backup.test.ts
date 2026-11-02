@@ -55,6 +55,16 @@ describe('parseBackup', () => {
     ).toBeNull();
   });
 
+  it('accepts an old backup whose settings rows carry onboardingComplete', () => {
+    const value = backup({
+      tables: {
+        ...backup().tables,
+        settings: [{ key: 'theme', value: 'light', onboardingComplete: true }],
+      } as BackupFile['tables'],
+    });
+    expect(parseBackup(value)).not.toBeNull();
+  });
+
   it('rejects a known table that is not an array', () => {
     expect(
       parseBackup({

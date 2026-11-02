@@ -51,7 +51,7 @@ import {
 import { listPriceMemory } from '../src/db/repositories/groceriesRepo';
 import { todayISO } from '../src/lib/date';
 import { tapHaptic } from '../src/lib/haptics';
-import { useAppTheme } from '../src/hooks/useAppTheme';
+import { useAppTheme, usePalette } from '../src/hooks/useAppTheme';
 import { colors } from '../theme/colors';
 import { spacing } from '../theme/typography';
 
@@ -60,7 +60,7 @@ export default function GroceryListScreen() {
   const db = useDb();
   const stores = useSettingsStore((state) => state.defaultGroceryStores);
   const today = todayISO();
-  const { glass } = useAppTheme();
+  const { glass, palette } = useAppTheme();
 
   const [itemSheetOpen, setItemSheetOpen] = useState(false);
   const itemSheetRef = useRef<BottomSheet>(null);
@@ -171,7 +171,7 @@ export default function GroceryListScreen() {
         subtitle={list.status === 'completed' ? 'Completed trip' : `${ordered.length} item${ordered.length === 1 ? '' : 's'}`}
         accessory={
           <Pressable onPress={() => setItemSheetOpen(true)} accessibilityRole="button" accessibilityLabel="Add item" hitSlop={8}>
-            <Plus size={24} strokeWidth={2} color={colors.matcha700} />
+            <Plus size={24} strokeWidth={2} color={palette.emphasis} />
           </Pressable>
         }
       >
@@ -189,9 +189,9 @@ export default function GroceryListScreen() {
         <GlassSurface
           radius={20}
           padding={14}
-          style={{ backgroundColor: comparison.overBudget ? colors.dangerBg : glass.fill }}
+          style={{ backgroundColor: comparison.overBudget ? palette.dangerBg : glass.fill }}
         >
-          <AppText variant="subhead" color={comparison.overBudget ? colors.dangerText : colors.matcha900}>
+          <AppText variant="subhead" color={comparison.overBudget ? palette.dangerText : colors.matcha900}>
             {budgetWarningCopy({ ...comparison, remainingCents: remainingBudget })}
           </AppText>
         </GlassSurface>
@@ -199,8 +199,8 @@ export default function GroceryListScreen() {
         {/* Store selector ---------------------------------------------- */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Store size={16} strokeWidth={1.75} color={colors.matcha700} />
-            <AppText variant="footnote" color={colors.textMuted}>
+            <Store size={16} strokeWidth={1.75} color={palette.emphasis} />
+            <AppText variant="footnote" color={palette.textMuted}>
               Store
             </AppText>
           </View>
@@ -221,7 +221,7 @@ export default function GroceryListScreen() {
           {ordered.length === 0 ? (
             <GlassSurface level="high" radius={20} padding={0}>
               <View style={styles.emptyItems}>
-                <AppText variant="callout" color={colors.textMuted} center>
+                <AppText variant="callout" color={palette.textMuted} center>
                   Nothing on the list yet. Add an item and the last price pops up.
                 </AppText>
               </View>
@@ -243,7 +243,7 @@ export default function GroceryListScreen() {
         </View>
 
         {/* Actions ------------------------------------------------------ */}
-        <GlassButton label="Add item" variant="secondary" onPress={() => setItemSheetOpen(true)} icon={<Plus size={18} strokeWidth={2} color={colors.matcha700} />} />
+        <GlassButton label="Add item" variant="secondary" onPress={() => setItemSheetOpen(true)} icon={<Plus size={18} strokeWidth={2} color={palette.emphasis} />} />
         {list.status === 'open' ? (
           <GlassButton
             label="Finish trip"
@@ -253,7 +253,7 @@ export default function GroceryListScreen() {
             accessibilityHint="Creates one Groceries expense for the purchased items"
           />
         ) : (
-          <AppText variant="footnote" color={colors.textMuted} center>
+          <AppText variant="footnote" color={palette.textMuted} center>
             This trip was already logged as an expense.
           </AppText>
         )}
@@ -284,9 +284,10 @@ export default function GroceryListScreen() {
 /* ------------------------------------------------------------------ */
 
 function EmptyList({ onBack }: { onBack: () => void }) {
+  const palette = usePalette();
   return (
     <View style={styles.emptyItems}>
-      <AppText variant="callout" color={colors.textMuted} center>
+      <AppText variant="callout" color={palette.textMuted} center>
         This list is gone.
       </AppText>
       <GlassButton label="Back to groceries" variant="secondary" onPress={onBack} fullWidth={false} />
@@ -295,9 +296,10 @@ function EmptyList({ onBack }: { onBack: () => void }) {
 }
 
 function TotalCell({ label, cents, strong = false }: { label: string; cents: number; strong?: boolean }) {
+  const palette = usePalette();
   return (
     <View style={styles.totalCell}>
-      <AppText variant="caption" color={colors.textMuted}>
+      <AppText variant="caption" color={palette.textMuted}>
         {label}
       </AppText>
       <MoneyText cents={cents} variant={strong ? 'title2' : 'subhead'} />
@@ -314,6 +316,7 @@ interface ItemRowProps {
 }
 
 function ItemRow({ item, onToggle, onDelete, first, last }: ItemRowProps) {
+  const palette = usePalette();
   const purchased = item.status === 'purchased';
   const price = item.actual_price_cents ?? item.est_price_cents;
 
@@ -342,7 +345,7 @@ function ItemRow({ item, onToggle, onDelete, first, last }: ItemRowProps) {
         >
           {item.name}
         </AppText>
-        <AppText variant="caption" color={colors.textMuted}>
+        <AppText variant="caption" color={palette.textMuted}>
           {item.quantity}
           {item.unit ? ` ${item.unit}` : ''} @ {price / 100 > 0 ? `${price / 100}` : '—'}
         </AppText>
@@ -351,7 +354,7 @@ function ItemRow({ item, onToggle, onDelete, first, last }: ItemRowProps) {
       <MoneyText cents={lineTotalCents(item)} variant="subhead" color={purchased ? colors.matcha700 : colors.matcha900} />
 
       <Pressable onPress={onDelete} accessibilityRole="button" accessibilityLabel={`Delete ${item.name}`} hitSlop={10} style={styles.deleteButton}>
-        <Trash2 size={16} strokeWidth={1.75} color={colors.dangerText} />
+        <Trash2 size={16} strokeWidth={1.75} color={palette.dangerText} />
       </Pressable>
     </Pressable>
   );
@@ -371,6 +374,7 @@ interface ItemSheetProps {
 }
 
 function ItemSheet({ ref, open, onClose, memory, activeStore, onSave }: ItemSheetProps) {
+  const palette = usePalette();
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [unit, setUnit] = useState('pc');
@@ -399,13 +403,13 @@ function ItemSheet({ ref, open, onClose, memory, activeStore, onSave }: ItemShee
 
         <View style={styles.formRow}>
           <View style={styles.quantityBox}>
-            <AppText variant="caption" color={colors.textMuted}>
+            <AppText variant="caption" color={palette.textMuted}>
               Quantity
             </AppText>
             <GlassInput value={quantity} onChangeText={setQuantity} keyboardType="decimal-pad" />
           </View>
           <View style={styles.priceBox}>
-            <AppText variant="caption" color={colors.textMuted}>
+            <AppText variant="caption" color={palette.textMuted}>
               Est. price
             </AppText>
             <GlassInput value={estPriceText} onChangeText={setEstPriceText} keyboardType="decimal-pad" placeholder="0.00" />
@@ -414,20 +418,20 @@ function ItemSheet({ ref, open, onClose, memory, activeStore, onSave }: ItemShee
 
         <View style={styles.formRow}>
           <View style={styles.priceBox}>
-            <AppText variant="caption" color={colors.textMuted}>
+            <AppText variant="caption" color={palette.textMuted}>
               Actual price (optional)
             </AppText>
             <GlassInput value={actualPriceText} onChangeText={setActualPriceText} keyboardType="decimal-pad" placeholder="0.00" />
           </View>
         </View>
 
-        <AppText variant="caption" color={colors.textMuted}>
+        <AppText variant="caption" color={palette.textMuted}>
           Unit
         </AppText>
         <ChipRow items={unitChips} selectedIds={[unit]} onToggle={setUnit} size="small" />
 
         {suggested ? (
-          <AppText variant="caption" color={colors.matcha700}>
+          <AppText variant="caption" color={palette.emphasis}>
             Last price remembered: {suggested / 100} per unit
             {activeStore ? ` at ${activeStore}` : ''}.
           </AppText>

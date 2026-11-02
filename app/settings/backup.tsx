@@ -20,7 +20,7 @@ import { useDb } from '../../src/state/dbStore';
 import { showToast } from '../../src/state/toastStore';
 import { useSettingsStore } from '../../src/state/settingsStore';
 import { withAlpha } from '../../src/components/glass/GlassChip';
-import { categoryTint } from '../../src/hooks/useAppTheme';
+import { categoryTint, usePalette } from '../../src/hooks/useAppTheme';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/typography';
 import {
@@ -35,6 +35,7 @@ import { diffDaysISO, formatHumanDate, todayISO } from '../../src/lib/date';
 import { notifyDbChanged } from '../../src/state/dbStore';
 
 export default function BackupScreen() {
+  const palette = usePalette();
   const db = useDb();
   const settings = useSettingsStore();
   const hydrate = useSettingsStore((state) => state.hydrate);
@@ -159,18 +160,18 @@ export default function BackupScreen() {
       {/* Status ------------------------------------------------------ */}
       <GlassSurface level="high" radius={20} padding={spacing.lg} style={{ backgroundColor: withAlpha('#CDEFE3', 0.5) }}>
         <View style={styles.statusRow}>
-          <ShieldCheck size={28} strokeWidth={1.75} color={colors.matcha700} />
+          <ShieldCheck size={28} strokeWidth={1.75} color={palette.emphasis} />
           <View style={styles.statusText}>
             <AppText variant="headline">
               {settings.lastBackupAt ? `Last backup ${formatHumanDate(settings.lastBackupAt.slice(0, 10))}` : 'No backup yet'}
             </AppText>
-            <AppText variant="caption" color={colors.textMuted}>
+            <AppText variant="caption" color={palette.textMuted}>
               {settings.lastBackupAt ? 'Safe — make a fresh copy whenever you like.' : 'A backup is the only safety net you have'}
             </AppText>
           </View>
         </View>
         {settings.lastBackupAt && since !== null && since >= reminderDays ? (
-          <AppText variant="footnote" color={colors.warningText} style={{ marginTop: spacing.xs }}>
+          <AppText variant="footnote" color={palette.warningText} style={{ marginTop: spacing.xs }}>
             It has been {since} days — time for a fresh copy.
           </AppText>
         ) : null}
@@ -186,14 +187,14 @@ export default function BackupScreen() {
       <GlassButton
         label="Restore from backup"
         variant="secondary"
-        icon={<UploadCloud size={18} strokeWidth={1.75} color={colors.matcha700} />}
+        icon={<UploadCloud size={18} strokeWidth={1.75} color={palette.emphasis} />}
         onPress={() => void handleImport()}
         disabled={busy}
       />
       <GlassButton
         label="Erase all data"
         variant="destructive"
-        icon={<Trash2 size={18} strokeWidth={1.75} color={colors.dangerText} />}
+        icon={<Trash2 size={18} strokeWidth={1.75} color={palette.dangerText} />}
         onPress={handleErase}
         disabled={busy}
       />
@@ -201,7 +202,7 @@ export default function BackupScreen() {
       {/* What is in a backup ----------------------------------------- */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Database size={16} strokeWidth={1.75} color={colors.matcha700} />
+          <Database size={16} strokeWidth={1.75} color={palette.emphasis} />
           <AppText variant="headline">In the backup</AppText>
         </View>
         <GlassSurface level="high" radius={20} padding={0}>
@@ -211,7 +212,7 @@ export default function BackupScreen() {
           <BackupRow label="Recurring rules, quick templates, goals" />
           <BackupRow label="Settings and preferences (never the app-lock PIN)" last />
         </GlassSurface>
-        <AppText variant="footnote" color={colors.textMuted}>
+        <AppText variant="footnote" color={palette.textMuted}>
           Receipt photos are not copied — they stay in the app's private storage. A restore on a new phone brings the data and the preferences back.
         </AppText>
       </View>
@@ -230,7 +231,7 @@ export default function BackupScreen() {
             void settings.update({ backupReminderDays: Number(value) });
           }}
         />
-        <AppText variant="footnote" color={colors.textMuted}>
+        <AppText variant="footnote" color={palette.textMuted}>
           A local notification only — no internet, no nagging.
         </AppText>
       </View>

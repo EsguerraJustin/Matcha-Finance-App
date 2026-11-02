@@ -25,7 +25,6 @@ export interface SettingsShape {
   backupReminderDays: number;
   lastBackupAt: string | null;
   appLockEnabled: boolean;
-  onboardingComplete: boolean;
   rolloverWeeklyBudget: boolean;
   autoCreateWeeklyBudget: boolean;
   autoCreateWeeklyAsked: boolean;
@@ -51,7 +50,6 @@ export const DEFAULT_SETTINGS: SettingsShape = {
   backupReminderDays: 14,
   lastBackupAt: null,
   appLockEnabled: false,
-  onboardingComplete: false,
   rolloverWeeklyBudget: false,
   autoCreateWeeklyBudget: false,
   autoCreateWeeklyAsked: false,
@@ -85,7 +83,6 @@ const parsers: Record<keyof SettingsShape, (raw: string | null) => unknown> = {
   },
   lastBackupAt: (raw) => raw || null,
   appLockEnabled: (raw) => raw === '1' || raw === 'true',
-  onboardingComplete: (raw) => raw === '1' || raw === 'true',
   rolloverWeeklyBudget: (raw) => raw === '1' || raw === 'true',
   autoCreateWeeklyBudget: (raw) => raw === '1' || raw === 'true',
   autoCreateWeeklyAsked: (raw) => raw === '1' || raw === 'true',
@@ -119,7 +116,6 @@ export function serializeSettings(settings: SettingsShape): Record<string, strin
     backupReminderDays: String(settings.backupReminderDays),
     lastBackupAt: settings.lastBackupAt ?? '',
     appLockEnabled: settings.appLockEnabled ? '1' : '0',
-    onboardingComplete: settings.onboardingComplete ? '1' : '0',
     rolloverWeeklyBudget: settings.rolloverWeeklyBudget ? '1' : '0',
     autoCreateWeeklyBudget: settings.autoCreateWeeklyBudget ? '1' : '0',
     autoCreateWeeklyAsked: settings.autoCreateWeeklyAsked ? '1' : '0',

@@ -39,7 +39,7 @@ import { withAlpha } from '../../src/components/glass/GlassChip';
 
 export default function CategoryManagerScreen() {
   const db = useDb();
-  const { glass } = useAppTheme();
+  const { glass, palette } = useAppTheme();
 
   const [showArchived, setShowArchived] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -117,16 +117,16 @@ export default function CategoryManagerScreen() {
                   <AppText variant="subhead" numberOfLines={1} color={category.archived ? colors.textMuted : colors.matcha900}>
                     {category.name}
                   </AppText>
-                  <AppText variant="caption" color={colors.textMuted}>
+                  <AppText variant="caption" color={palette.textMuted}>
                     {category.types.length} type{category.types.length === 1 ? '' : 's'}
                     {category.is_default ? ' · default' : ''}
                     {category.archived ? ' · archived' : ''}
                   </AppText>
                 </View>
                 {expanded === category.id ? (
-                  <ChevronUp size={20} strokeWidth={1.75} color={colors.matcha700} />
+                  <ChevronUp size={20} strokeWidth={1.75} color={palette.emphasis} />
                 ) : (
-                  <ChevronDown size={20} strokeWidth={1.75} color={colors.matcha700} />
+                  <ChevronDown size={20} strokeWidth={1.75} color={palette.emphasis} />
                 )}
               </Pressable>
 
@@ -158,7 +158,7 @@ export default function CategoryManagerScreen() {
                             accessibilityLabel={`Rename ${type.name}`}
                             hitSlop={8}
                           >
-                            <AppText variant="caption" color={colors.matcha700}>
+                            <AppText variant="caption" color={palette.emphasis}>
                               rename
                             </AppText>
                           </Pressable>
@@ -198,11 +198,11 @@ export default function CategoryManagerScreen() {
                     style={styles.archiveRow}
                   >
                     {category.archived ? (
-                      <ArchiveRestore size={18} strokeWidth={1.75} color={colors.matcha700} />
+                      <ArchiveRestore size={18} strokeWidth={1.75} color={palette.emphasis} />
                     ) : (
-                      <Archive size={18} strokeWidth={1.75} color={colors.matcha700} />
+                      <Archive size={18} strokeWidth={1.75} color={palette.emphasis} />
                     )}
-                    <AppText variant="caption" color={colors.matcha700}>
+                    <AppText variant="caption" color={palette.emphasis}>
                       {category.archived ? 'Restore category' : 'Archive category (keeps history)'}
                     </AppText>
                   </Pressable>
@@ -213,7 +213,7 @@ export default function CategoryManagerScreen() {
         )}
 
         <GlassSurface level="low" radius={20} padding={14} style={styles.addBlock}>
-          <AppText variant="footnote" color={colors.textMuted}>
+          <AppText variant="footnote" color={palette.textMuted}>
             New category — pick a pastel, then name it
           </AppText>
           <ChipRow items={colorChips} selectedIds={[newCategoryColor]} onToggle={setNewCategoryColor} size="small" />
@@ -237,7 +237,7 @@ export default function CategoryManagerScreen() {
                 <AppText variant="subhead" color={method.archived ? colors.textMuted : colors.matcha900}>
                   {method.name}
                 </AppText>
-                <AppText variant="caption" color={colors.textMuted}>
+                <AppText variant="caption" color={palette.textMuted}>
                   {method.is_default ? 'default' : 'custom'}
                   {method.archived ? ' · archived' : ''}
                 </AppText>
@@ -249,9 +249,9 @@ export default function CategoryManagerScreen() {
                 hitSlop={8}
               >
                 {method.archived ? (
-                  <ArchiveRestore size={20} strokeWidth={1.75} color={colors.matcha700} />
+                  <ArchiveRestore size={20} strokeWidth={1.75} color={palette.emphasis} />
                 ) : (
-                  <Archive size={20} strokeWidth={1.75} color={colors.matcha700} />
+                  <Archive size={20} strokeWidth={1.75} color={palette.emphasis} />
                 )}
               </Pressable>
             </View>
@@ -282,7 +282,7 @@ export default function CategoryManagerScreen() {
         accessibilityState={{ checked: showArchived }}
         style={[styles.showArchived, { borderColor: glass.borderInner }]}
       >
-        <AppText variant="caption" color={colors.matcha700}>
+        <AppText variant="caption" color={palette.emphasis}>
           {showArchived ? 'Hide archived items' : 'Show archived items'}
         </AppText>
       </Pressable>

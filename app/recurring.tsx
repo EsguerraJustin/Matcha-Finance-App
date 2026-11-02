@@ -53,7 +53,7 @@ const MODES: ReadonlyArray<{ value: RuleMode; label: string }> = [
 
 export default function RecurringScreen() {
   const db = useDb();
-  const { glass } = useAppTheme();
+  const { glass, palette } = useAppTheme();
   const today = todayISO();
   const weekStartsOn = useSettingsStore((state) => state.weekStartsOn) as WeekStart;
 
@@ -147,7 +147,7 @@ export default function RecurringScreen() {
                 <AppText variant="subhead" color={rule.active ? colors.matcha900 : colors.textMuted}>
                   {rule.label}
                 </AppText>
-                <AppText variant="caption" color={colors.textMuted}>
+                <AppText variant="caption" color={palette.textMuted}>
                   {humanFrequency(rule)} · next {relativeDayLabel(rule.next_due_on, today)} ·{' '}
                   {rule.mode === 'auto' ? 'auto-add' : 'remind me'}
                 </AppText>
@@ -167,7 +167,7 @@ export default function RecurringScreen() {
                 label="Log now"
                 variant="secondary"
                 size="small"
-                icon={<Bell size={15} strokeWidth={1.75} color={colors.matcha700} />}
+                icon={<Bell size={15} strokeWidth={1.75} color={palette.emphasis} />}
                 onPress={() => void logNow(rule)}
                 style={styles.action}
               />
@@ -178,7 +178,7 @@ export default function RecurringScreen() {
                 hitSlop={8}
                 style={styles.deleteButton}
               >
-                <Trash2 size={18} strokeWidth={1.75} color={colors.dangerText} />
+                <Trash2 size={18} strokeWidth={1.75} color={palette.dangerText} />
               </Pressable>
             </View>
           </GlassCard>
@@ -190,13 +190,13 @@ export default function RecurringScreen() {
         <GlassInput value={label} onChangeText={setLabel} placeholder="Phone load" label="Label" />
         <GlassInput value={amountText} onChangeText={setAmountText} placeholder="₱100" keyboardType="decimal-pad" label="Amount" />
         <GlassSegmented options={FREQUENCIES} value={frequency} onChange={setFrequency} />
-        <AppText variant="footnote" color={colors.textMuted}>
+        <AppText variant="footnote" color={palette.textMuted}>
           When it is due
         </AppText>
         <GlassSegmented options={MODES} value={mode} onChange={setMode} />
         <GlassInput value={nextDueOn} onChangeText={setNextDueOn} placeholder="YYYY-MM-DD" label="Next due" autoCapitalize="none" />
 
-        <AppText variant="footnote" color={colors.textMuted}>
+        <AppText variant="footnote" color={palette.textMuted}>
           Category
         </AppText>
         <ChipRow
@@ -211,14 +211,14 @@ export default function RecurringScreen() {
 
         {activeCategory && typeChips.length ? (
           <>
-            <AppText variant="footnote" color={colors.textMuted}>
+            <AppText variant="footnote" color={palette.textMuted}>
               Type
             </AppText>
             <ChipRow items={typeChips} selectedIds={typeId ? [typeId] : []} onToggle={setTypeId} size="small" />
           </>
         ) : null}
 
-        <AppText variant="footnote" color={colors.textMuted}>
+        <AppText variant="footnote" color={palette.textMuted}>
           Paid with
         </AppText>
         <ChipRow items={paymentChips} selectedIds={paymentMethodId ? [paymentMethodId] : []} onToggle={setPaymentMethodId} size="small" />
@@ -229,13 +229,13 @@ export default function RecurringScreen() {
           onPress={add}
         />
 
-        <AppText variant="caption" color={colors.textMuted}>
+        <AppText variant="caption" color={palette.textMuted}>
           Auto-add posts the expense when it comes due. Remind me sends one notification and waits for you to tap Log now. Anything missed while the app was closed is caught up on the next open.
         </AppText>
       </GlassSurface>
 
       <GlassSurface radius={20} padding={12} style={{ borderColor: glass.borderInner }}>
-        <AppText variant="caption" color={colors.textMuted}>
+        <AppText variant="caption" color={palette.textMuted}>
           Everything here runs entirely on your phone — no server, no sync.
         </AppText>
       </GlassSurface>

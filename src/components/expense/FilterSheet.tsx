@@ -14,7 +14,7 @@ import { GlassInput } from '../ui/GlassInput';
 import { AppText } from '../ui/AppText';
 import { ChipRow, type ChipRowItem } from '../expense/ChipRow';
 import { GlassSurface } from '../glass/GlassSurface';
-import { categoryTint } from '../../hooks/useAppTheme';
+import { categoryTint, usePalette } from '../../hooks/useAppTheme';
 import { withAlpha } from '../glass/GlassChip';
 import { EMPTY_FILTERS, toggleInList, type DateRangePreset, type FilterState } from '../../lib/expenses';
 import { parseAmountToCents } from '../../lib/money';
@@ -42,6 +42,7 @@ function FilterSheetImpl(
   { categories, paymentMethods, value, onApply, onClose }: FilterSheetProps,
   ref: React.Ref<BottomSheet>,
 ) {
+  const palette = usePalette();
   const [draft, setDraft] = useState<FilterState>(value);
   const [minText, setMinText] = useState('');
   const [maxText, setMaxText] = useState('');
@@ -86,7 +87,7 @@ function FilterSheetImpl(
     <GlassSheet ref={ref} index={0} snapPoints={['80%']} scrollable onClose={onClose} title="Filters">
       <ScrollView style={styles.body} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.section}>
-          <AppText variant="footnote" color={colors.textMuted}>
+          <AppText variant="footnote" color={palette.textMuted}>
             When
           </AppText>
           <GlassSegmented
@@ -97,7 +98,7 @@ function FilterSheetImpl(
         </View>
 
         <View style={styles.section}>
-          <AppText variant="footnote" color={colors.textMuted}>
+          <AppText variant="footnote" color={palette.textMuted}>
             Category
           </AppText>
           <ChipRow
@@ -118,7 +119,7 @@ function FilterSheetImpl(
 
         {selectedCategory && typeChips.length ? (
           <View style={styles.section}>
-            <AppText variant="footnote" color={colors.textMuted}>
+            <AppText variant="footnote" color={palette.textMuted}>
               Type
             </AppText>
             <ChipRow items={typeChips} selectedIds={draft.typeIds} onToggle={(id) => setDraft((current) => ({ ...current, typeIds: toggleInList(current.typeIds, id) }))} wrap size="small" />
@@ -126,7 +127,7 @@ function FilterSheetImpl(
         ) : null}
 
         <View style={styles.section}>
-          <AppText variant="footnote" color={colors.textMuted}>
+          <AppText variant="footnote" color={palette.textMuted}>
             Paid with
           </AppText>
           <ChipRow
@@ -139,7 +140,7 @@ function FilterSheetImpl(
         </View>
 
         <View style={styles.section}>
-          <AppText variant="footnote" color={colors.textMuted}>
+          <AppText variant="footnote" color={palette.textMuted}>
             Amount (₱)
           </AppText>
           <View style={styles.amountRow}>
@@ -190,6 +191,7 @@ function PressableRow({
   selected: boolean;
   onPress: () => void;
 }) {
+  const palette = usePalette();
   return (
     <Pressable onPress={onPress} accessibilityRole="switch" accessibilityState={{ checked: selected }}>
       <GlassSurface radius={20} padding={14} style={{ backgroundColor: selected ? tint : undefined }}>
@@ -197,7 +199,7 @@ function PressableRow({
           <View style={styles.rowText}>
             <AppText variant="subhead">{label}</AppText>
             {hint ? (
-              <AppText variant="caption" color={colors.textMuted}>
+              <AppText variant="caption" color={palette.textMuted}>
                 {hint}
               </AppText>
             ) : null}

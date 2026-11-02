@@ -10,7 +10,6 @@ import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } fro
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { useAppTheme } from '../../hooks/useAppTheme';
-import { colors } from '../../../theme/colors';
 import { radius, typeScale } from '../../../theme/typography';
 import { selectionHaptic } from '../../lib/haptics';
 
@@ -28,7 +27,7 @@ export interface GlassSegmentedProps<T extends string> {
 }
 
 function GlassSegmentedImpl<T extends string>({ options, value, onChange, style, testID }: GlassSegmentedProps<T>) {
-  const { glass, solidGlass, reduceMotion } = useAppTheme();
+  const { glass, reduceMotion, palette } = useAppTheme();
   const trackWidth = useSharedValue(0);
   const index = Math.max(
     0,
@@ -81,7 +80,7 @@ function GlassSegmentedImpl<T extends string>({ options, value, onChange, style,
         style={[
           styles.thumb,
           {
-            backgroundColor: solidGlass ? colors.surface : 'rgba(255,255,255,0.92)',
+            backgroundColor: palette.cardFill,
             borderRadius: radius.control - 3,
             shadowColor: glass.shadow,
           },
@@ -98,11 +97,12 @@ function GlassSegmentedImpl<T extends string>({ options, value, onChange, style,
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
             accessibilityLabel={option.label}
+            hitSlop={{ top: 4, bottom: 4 }}
             style={styles.segment}
           >
             <Text
               numberOfLines={1}
-              style={[styles.label, { color: active ? colors.matcha900 : colors.textMuted, fontWeight: active ? '700' : '500' }]}
+              style={[styles.label, { color: active ? palette.text : palette.textMuted, fontWeight: active ? '700' : '500' }]}
             >
               {option.label}
             </Text>

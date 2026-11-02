@@ -23,6 +23,7 @@ import { GlassSurface } from '../src/components/glass/GlassSurface';
 import { AppText } from '../src/components/ui/AppText';
 import { ScreenScaffold } from '../src/components/ui/ScreenScaffold';
 import { withAlpha } from '../src/components/glass/GlassChip';
+import { usePalette } from '../src/hooks/useAppTheme';
 import { colors } from '../theme/colors';
 import { spacing } from '../theme/typography';
 
@@ -103,6 +104,7 @@ const MENU: MenuItem[] = [
 ];
 
 export default function MoreScreen() {
+  const palette = usePalette();
   return (
     <ScreenScaffold title="More" subtitle="Everything outside the tabs">
       <GlassSurface level="high" radius={20} padding={0}>
@@ -113,7 +115,7 @@ export default function MoreScreen() {
         </View>
       </GlassSurface>
 
-      <AppText variant="footnote" color={colors.textMuted} center>
+      <AppText variant="footnote" color={palette.textMuted} center>
         Matcha Wallet is offline by design. Nothing here leaves your phone.
       </AppText>
     </ScreenScaffold>
@@ -121,6 +123,7 @@ export default function MoreScreen() {
 }
 
 function MenuRow({ item, first, last }: { item: MenuItem; first: boolean; last: boolean }) {
+  const palette = usePalette();
   const Icon = item.icon;
 
   return (
@@ -141,11 +144,11 @@ function MenuRow({ item, first, last }: { item: MenuItem; first: boolean; last: 
       </View>
       <View style={styles.rowText}>
         <AppText variant="subhead">{item.label}</AppText>
-        <AppText variant="caption" color={colors.textMuted}>
+        <AppText variant="caption" color={palette.textMuted}>
           {item.hint}
         </AppText>
       </View>
-      <ChevronRight size={18} strokeWidth={1.75} color={colors.textMuted} />
+      <ChevronRight size={18} strokeWidth={1.75} color={palette.textMuted} />
     </Pressable>
   );
 }

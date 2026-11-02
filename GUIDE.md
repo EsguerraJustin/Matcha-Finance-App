@@ -1,0 +1,260 @@
+# Matcha Wallet — Development Guide
+
+> **The single source of truth** for how this codebase works, how to extend it,
+> and what rules must never be broken. Every task in `TASKS.md` references
+> sections here.
+
+---
+
+## 1  Identity
+
+| Field | Value |
+|---|---|
+| Name | **Matcha Wallet** |
+| Bundle | `com.matchawallet.app` |
+| Scheme | `matchawallet` |
+| Target | Android phone (no tablet, no iOS-only APIs) |
+| Locale | Philippines — `₱`, `Asia/Manila`, integer centavos |
+| Constraint | **Fully offline.** Zero network calls, zero `INTERNET` permission. |
+
+---
+
+## 2  Stack
+
+| Layer | Library | Version |
+|---|---|---|
+| Framework | Expo SDK 57, managed workflow | 57.x |
+| Runtime | React Native 0.86 · React 19 | — |
+| Language | TypeScript 6 — `strict`, `noUnusedLocals`, `noUnusedParameters` | — |
+| Router | `expo-router` (file-based) | 5.x |
+| Database | `expo-sqlite` — single file, WAL mode | — |
+| State | **Zustand** for UI state only; data lives in SQLite | — |
+| Dates | `date-fns` + `Intl.DateTimeFormat` in `Asia/Manila` | — |
+| Icons | `lucide-react-native` | — |
+| Sheets | `@gorhom/bottom-sheet` | — |
+| Fonts | Bundled Inter (400/500/600/700) via `@expo-google-fonts/inter` | — |
+| Animations | `react-native-reanimated` | — |
+
+### Known RN 0.86 gotchas
+
+- `StyleSheet.absoluteFillObject` — **removed**. Use `StyleSheet.absoluteFill`.
+- `BlurView.blurAmount` — **removed**. Use `intensity`.
+- `expo-router` `Tabs` — **deprecated**. Use `import { Tabs } from 'expo-router/js-tabs'`.
+- `AccessibilityInfo.colorSchemeChanged` — does not exist. Use `useColorScheme()`.
+- `expo-file-system` SDK 57 API: `new File(…).copy(dest, { overwrite: true })`, `.text()`, `.write()`, `Directory(Paths.document, …)`.
+- `expo-notifications` triggers: `SchedulableTriggerInputTypes.DAILY|DATE` with `channelId`.
+- `babel.config.js` must keep `react-native-worklets/plugin` **last**.
+
+### Environment notes
+
+- `npx expo install` fails in this environment (`EALLOWSCRIPTS`); install with `npm install <pkg>@<version>` using the version from `node_modules/expo/bundledNativeModules.json`.
+- Git is local-only, user `Matcha Wallet Dev <dev@matchawallet.local>`.
+- `.claude/` is untracked; `android/`, `dist/`, `.expo/` are gitignored.
+- Jest prints a harmless "worker process has failed to exit gracefully" warning after passing — ignore it.
+
+---
+
+## 3  Project layout
+
+```
+app/                        Expo Router file-based routes
+  _layout.tsx               Root: fonts → migrations → seed → settings → boot → navigator + app lock
+  (tabs)/                   Home · History · Groceries · Reports
+    _layout.tsx             GlassTabBar + tab definitions
+  add-expense-sheet.tsx     Add/Edit expense sheet (numpad, chips, receipt)
+  allowance.tsx             Money-in entries + recurring allowance setup
+  budgets.tsx               Create/list budgets, category limits, rollover
+  goals.tsx                 Savings goals with progress ring
+  grocery-list.tsx          Grocery list detail + finish-trip
+  more.tsx                  Hub linking to all non-tab screens
+  recently-deleted.tsx      Soft-deleted expenses (30-day grace)
+  recurring.tsx             Recurring rules (auto-add / remind)
+  +not-found.tsx            404 fallback
+  settings/
+    index.tsx               All settings: currency, cycles, theme, lock, reminders
+    backup.tsx              Export/restore/erase
+    categories.tsx          Category/type/payment method manager
+
+theme/                      Design tokens (brief Section 4.1 exact values)
+  colors.ts                 Matcha palette, category pastels, Matcha Night, Palette type, resolveTone()
+  glass.ts                  Glassmorphism tokens + solid fallback resolver
+  typography.ts             Type scale, radii, 8-pt spacing grid, layout constants
+
+src/
+  db/
+    client.ts               SQLite connection, PRAGMAs, migration runner
+    migrations/
+      001_init.sql           Full schema (16 tables)
+      index.ts               Ordered migration list
+    repositories/            One file per table (CRUD + queries)
+    seed.ts                  First-launch default categories/types/methods
+    settings.ts              Typed settings contract (SettingsShape, parsers, serializers)
+    boot.ts                  Boot routine (purge, catch-up, thresholds, reminders)
+    seedPerf.ts              __DEV__-only 5,000-expense perf seed
+  lib/                       Pure logic (no React, no DB access)
+    money.ts                 Integer-centavo arithmetic, formatting
+    date.ts                  Asia/Manila YYYY-MM-DD helpers, week/month ranges
+    id.ts                    UUID v4 via expo-crypto, seededId()
+    haptics.ts               Expo Haptics wrappers
+    expenses.ts              Filter state, toggleInList
+    budgets.ts               Budget math, threshold logic, summaries
+    groceries.ts             Item totals, finish-trip breakdown
+    recurring.ts             dueOccurrences, advanceNextDue, MAX_CATCH_UP
+    reports.ts               Period aggregation, insights, CSV generation
+    receipts.ts              Image compress/persist/delete
+    notifications.ts         Stable-id local notifications (daily, backup, budget, bill)
+    appLock.ts               PIN hash/verify, biometric check
+    backup.ts                FS I/O for export/restore/erase
+    backupFormat.ts          Pure shape + validation (no FS, no SQLite)
+  state/                     Zustand stores (UI state only)
+    dbStore.ts               DB ref + reactive query hook (useDbQuery)
+    settingsStore.ts         Hydrated settings from SQLite
+    addExpenseStore.ts       Sheet open/close, editing target
+    toastStore.ts            Global toast state
+  hooks/
+    useAppTheme.ts           Accessibility prefs + glass resolution + palette
+  components/
+    AppLockScreen.tsx        PIN + biometric unlock overlay
+    glass/                   AuroraBackground, GlassCard, GlassSheet, GlassTabBar,
+                             GlassButton, GlassSegmented, GlassChip, GlassSurface
+    ui/                      AppText, MoneyText, ScreenScaffold, LargeTitleHeader,
+                             EmptyState, GlassInput, ProgressBar, ProgressRing, Toast
+    expense/                 AmountNumpad, ChipRow, FilterSheet, BulkActionBar, ExpenseRow
+
+__tests__/                   Jest unit tests
+```
+
+---
+
+## 4  Architecture rules
+
+### 4.1  Money
+
+- **Always integer centavos.** No floats anywhere in data or calculations.
+- `src/lib/money.ts` is the only parser (`parseAmountToCents`).
+- `<MoneyText />` is the only renderer.
+
+### 4.2  Dates
+
+- Calendar dates are **`YYYY-MM-DD` strings in Asia/Manila**, derived via `Intl.DateTimeFormat`.
+- Timestamps are ISO-8601 UTC strings.
+- All helpers live in `src/lib/date.ts` — never use `new Date().toISOString().slice(0,10)`.
+
+### 4.3  Glass budget
+
+- At most **~4 visible `BlurView`s** on screen at once.
+- Never place a BlurView inside another blurred surface.
+- `GlassSurface` is the single blurred primitive; list rows use plain translucent fills with hairline dividers.
+- Blur is disabled when: device API < 31 (Android), user toggles "Reduce transparency", or OS reports reduce-transparency.
+
+### 4.4  Text rendering
+
+- **No raw RN `<Text>`.** Use `<AppText>` or `<MoneyText>` — they set `maxFontSizeMultiplier={1.3}` and resolve palette colour.
+- Exception: glass primitives (`GlassButton`, `GlassChip`, `GlassSegmented`, `GlassTabBar`) use RN `Text` internally because they are leaf components with their own sizing logic.
+
+### 4.5  Dark mode
+
+- `theme/colors.ts` exports `lightPalette` and `darkPalette` (type `Palette`).
+- `resolveTone(color, palette)` maps a static light-theme token (e.g. `colors.matcha700`) to the equivalent semantic colour for the active palette.
+- `<AppText>` calls `resolveTone` automatically on its `color` prop.
+- For **icons and non-text colours**, use `palette.emphasis`, `palette.textMuted`, `palette.dangerText`, etc., obtained via `useAppTheme()` or `usePalette()`.
+- Components that only need colours (no glass) should use `usePalette()` for a lighter hook.
+
+### 4.6  Accessibility
+
+- Every `<Pressable>` must have `accessibilityRole` and `accessibilityLabel` within 15 lines.
+- Touch targets ≥ 48 pt. Small elements use `hitSlop` to pad to 48.
+- `reduceMotion` disables springs; `reduceTransparency` switches to solid glass fallback.
+
+### 4.7  Offline
+
+- **Zero network calls.** No `fetch()`, `axios`, `XMLHttpRequest`, `https://` URLs.
+- No console.log/warn/error in shipped code (except behind `__DEV__`).
+- No TODO/FIXME/XXX comments.
+
+### 4.8  Notifications
+
+- Every notification has a **stable string identifier** (e.g. `matcha.daily-reminder`, `matcha.budget.<id>.<threshold>`).
+- Scheduling always **cancels the old one first** via `scheduleReplacing()` — no stacking on repeated boots.
+
+### 4.9  Settings
+
+- Settings live in the `settings(key, value)` SQLite table — no AsyncStorage, no preferences service.
+- `src/db/settings.ts` is the typed contract: `SettingsShape`, parsers, serializers.
+- The Zustand `settingsStore` hydrates from SQLite on boot and writes back on each change.
+
+---
+
+## 5  Commit conventions
+
+- One commit per phase: `phase-N: <short description>`.
+- Every commit must pass `npx tsc --noEmit` and `npx jest`.
+- Bundle must succeed: `npx expo export --platform android --no-bytecode`.
+- `.claude/` always excluded from git (`git reset -- .claude` before committing).
+
+---
+
+## 6  Testing
+
+```bash
+npm test           # Jest — 8 suites, 156+ tests
+npm run typecheck  # tsc --noEmit (must be zero errors)
+```
+
+Tests cover: money formatting, date helpers, budget math, groceries, reports, recurring rules, backup format.
+
+### Adding new tests
+
+- Place in `__tests__/<feature>.test.ts`.
+- Import from `src/lib/` (pure logic — no React, no DB).
+- For DB-dependent logic, mock via the same patterns as `backup.test.ts`.
+
+---
+
+## 7  Build & release
+
+```bash
+# Local Android APK (no EAS)
+npx expo prebuild --platform android
+cd android && ./gradlew assembleRelease
+
+# EAS cloud builds
+npx eas build --platform android --profile preview
+npx eas build --platform android --profile production
+```
+
+Release checklist:
+1. `npx tsc --noEmit` — zero errors
+2. `npx jest` — all pass
+3. `npx expo export --platform android --no-bytecode` — bundles
+4. Confirm INTERNET permission is blocked in `app.json` → `android.blockedPermissions`
+5. Grep for `fetch(`, `axios`, `console.log` — none found
+
+---
+
+## 8  Phase history
+
+| Phase | Commit | Contents |
+|---|---|---|
+| 0 | `62ae4bc` | Foundation: tokens, glass primitives, SQLite + migrations, tab shell |
+| 1 | `8886c64` | Expenses: add sheet, history v2, category manager |
+| 2 | `174f4eb` | Allowance, budgets, safe-to-spend, thresholds, recurring, goals |
+| 3 | `276f8fb` | Groceries: lists, price memory, finish-trip |
+| 4 | `8b283a8` | Reports: period switcher, charts, insights, CSV |
+| 5 | `f4baab7` | Safety: backup/restore, app lock, notifications, recently deleted |
+| 6 | *(in progress)* | Polish: dark mode, accessibility, hitSlop, keyboard handling |
+
+---
+
+## 9  Key files to know
+
+| What | Where |
+|---|---|
+| Design tokens (exact brief values) | `theme/colors.ts`, `theme/glass.ts`, `theme/typography.ts` |
+| Palette + dark mode resolver | `theme/colors.ts` → `Palette`, `resolveTone()` |
+| Glass accessibility resolution | `src/hooks/useAppTheme.ts` |
+| Boot sequence | `app/_layout.tsx` → `src/db/boot.ts` |
+| Notification scheduling | `src/lib/notifications.ts` (stable IDs, cancel-before-schedule) |
+| Backup format | `src/lib/backupFormat.ts` (pure) · `src/lib/backup.ts` (FS+SQLite I/O) |
+| Settings contract | `src/db/settings.ts` → `SettingsShape` |
+| Migration schema | `src/db/migrations/001_init.sql` (16 tables) |

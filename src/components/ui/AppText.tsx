@@ -6,7 +6,7 @@
 import { memo } from 'react';
 import { StyleSheet, Text as RNText, type StyleProp, type TextProps as RNTextProps, type TextStyle } from 'react-native';
 
-import { colors } from '../../../theme/colors';
+import { colors, resolveTone } from '../../../theme/colors';
 import { typeScale, type TypeStyleName } from '../../../theme/typography';
 import { formatMoney, type FormatMoneyOptions } from '../../lib/money';
 import { useAppTheme } from '../../hooks/useAppTheme';
@@ -37,7 +37,7 @@ function AppTextImpl({ variant = 'body', color, numeric = false, center = false,
           fontSize: scale.fontSize,
           lineHeight: scale.lineHeight,
           fontWeight: scale.fontWeight,
-          color: color ?? palette.text,
+          color: color ? resolveTone(color, palette) : palette.text,
           textAlign: center ? 'center' : undefined,
         },
         numeric && styles.numeric,
@@ -67,7 +67,7 @@ export interface MoneyTextProps extends Omit<AppTextProps, 'children'> {
   format?: Omit<FormatMoneyOptions, 'symbol'>;
 }
 
-function MoneyTextImpl({ cents, variant = 'headline', format, color = colors.matcha900, style, ...rest }: MoneyTextProps) {
+function MoneyTextImpl({ cents, variant = 'headline', format, color, style, ...rest }: MoneyTextProps) {
   const symbol = useSettingsStore((state) => state.currencySymbol);
   return (
     <AppText variant={variant} color={color} numeric style={style} {...rest}>

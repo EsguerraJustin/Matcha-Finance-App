@@ -13,6 +13,7 @@ import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 
 import { GlassButton } from '../glass/GlassButton';
 import { AppText } from './AppText';
+import { usePalette } from '../../hooks/useAppTheme';
 import { colors } from '../../../theme/colors';
 import { spacing } from '../../../theme/typography';
 
@@ -46,6 +47,7 @@ export interface EmptyStateProps {
 }
 
 function EmptyStateImpl({ title, message, actionLabel, onAction, compact = false }: EmptyStateProps) {
+  const palette = usePalette();
   return (
     <View style={[styles.root, compact && styles.compact]} accessibilityRole="summary">
       <MatchaLeaf size={compact ? 64 : 96} />
@@ -53,7 +55,7 @@ function EmptyStateImpl({ title, message, actionLabel, onAction, compact = false
         {title}
       </AppText>
       {message ? (
-        <AppText variant="callout" color={colors.textMuted} center style={styles.message}>
+        <AppText variant="callout" color={palette.textMuted} center style={styles.message}>
           {message}
         </AppText>
       ) : null}

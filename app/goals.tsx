@@ -20,6 +20,7 @@ import { ScreenScaffold } from '../src/components/ui/ScreenScaffold';
 import { ProgressRing } from '../src/components/ui/ProgressRing';
 import { withAlpha } from '../src/components/glass/GlassChip';
 import { useDb, useDbQuery } from '../src/state/dbStore';
+import { usePalette } from '../src/hooks/useAppTheme';
 import { showToast } from '../src/state/toastStore';
 import { ratio } from '../src/lib/money';
 import {
@@ -34,6 +35,7 @@ import { colors } from '../theme/colors';
 import { spacing } from '../theme/typography';
 
 export default function GoalsScreen() {
+  const palette = usePalette();
   const db = useDb();
 
   const [name, setName] = useState('');
@@ -88,14 +90,14 @@ export default function GoalsScreen() {
                 <View style={styles.goalText}>
                   <AppText variant="title2">{goal.name}</AppText>
                   <MoneyText cents={goal.saved_cents} variant="subhead" />
-                  <AppText variant="caption" color={colors.textMuted}>
+                  <AppText variant="caption" color={palette.textMuted}>
                     {goal.saved_cents >= goal.target_cents
                       ? 'Reached — lovely.'
                       : `${formatShort(goal.target_cents - goal.saved_cents)} to go`}
                     {goal.target_date ? ` · by ${goal.target_date}` : ''}
                   </AppText>
                   {goal.reduce_safe_to_spend ? (
-                    <AppText variant="caption" color={colors.matcha700}>
+                    <AppText variant="caption" color={palette.emphasis}>
                       Counts as set aside
                     </AppText>
                   ) : null}
@@ -120,7 +122,7 @@ export default function GoalsScreen() {
                   hitSlop={8}
                   style={styles.deleteButton}
                 >
-                  <Trash2 size={18} strokeWidth={1.75} color={colors.dangerText} />
+                  <Trash2 size={18} strokeWidth={1.75} color={palette.dangerText} />
                 </Pressable>
               </View>
 
@@ -158,7 +160,7 @@ export default function GoalsScreen() {
         <GlassInput value={name} onChangeText={setName} placeholder="Laptop fund" label="Name" />
         <GlassInput value={targetText} onChangeText={setTargetText} placeholder="₱25,000" keyboardType="decimal-pad" label="Target" />
         <GlassInput value={date} onChangeText={setDate} placeholder="YYYY-MM-DD (optional)" label="By" autoCapitalize="none" />
-        <AppText variant="footnote" color={colors.textMuted}>
+        <AppText variant="footnote" color={palette.textMuted}>
           Colour
         </AppText>
         <View style={styles.colorRow}>
@@ -186,7 +188,7 @@ export default function GoalsScreen() {
         <GlassButton label="Create goal" icon={<Plus size={18} strokeWidth={2} color={colors.matcha900} />} onPress={add} />
       </GlassSurface>
 
-      <AppText variant="caption" color={colors.textMuted} center>
+      <AppText variant="caption" color={palette.textMuted} center>
         {activeGoal ? `Adding to ${activeGoal.name}` : 'Goals with "set aside" on lower your safe-to-spend figure.'}
       </AppText>
     </ScreenScaffold>

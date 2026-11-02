@@ -56,6 +56,8 @@ function ScreenScaffoldImpl({
           contentContainerStyle={{ paddingBottom: TAB_BAR_INSET }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          automaticallyAdjustKeyboardInsets
         >
           {content}
         </AnimatedScrollView>

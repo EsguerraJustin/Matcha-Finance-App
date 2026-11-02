@@ -19,7 +19,6 @@ import Animated, {
 import { BlurView } from 'expo-blur';
 
 import { useAppTheme } from '../../hooks/useAppTheme';
-import { colors } from '../../../theme/colors';
 import { spacing } from '../../../theme/typography';
 import { AppText } from './AppText';
 
@@ -57,7 +56,7 @@ export interface LargeTitleHeaderProps {
 }
 
 function LargeTitleHeaderImpl({ title, subtitle, accessory, style, scrollY }: LargeTitleHeaderProps & { scrollY: SharedValue<number> }) {
-  const { glass, solidGlass } = useAppTheme();
+  const { glass, solidGlass, palette } = useAppTheme();
 
   const expandedStyle = useAnimatedStyle(() => ({
     opacity: interpolate(scrollY.value, [0, COLLAPSE_DISTANCE * 0.7, COLLAPSE_DISTANCE], [1, 1, 0], Extrapolation.CLAMP),
@@ -94,7 +93,7 @@ function LargeTitleHeaderImpl({ title, subtitle, accessory, style, scrollY }: La
               {title}
             </AppText>
             {subtitle ? (
-              <AppText variant="subhead" color={colors.textMuted} numberOfLines={1}>
+              <AppText variant="subhead" color={palette.textMuted} numberOfLines={1}>
                 {subtitle}
               </AppText>
             ) : null}

@@ -131,6 +131,10 @@ __tests__/                Jest unit tests (money, date, budget, groceries, repor
   `glass.solidFallback` — fully readable with zero blur.
 - **Reduce motion** disables spring animations.
 - Touch targets ≥ 48 pt; text meets 4.5:1 against the *worst* backdrop spot.
+- **Dark mode (Matcha Night)** is driven by `resolveTone()` (maps light tokens to
+  semantic palette colours) and the lightweight `usePalette()` hook, so every
+  `<AppText>`/icon resolves correctly without per-file branches. Theme setting
+  supports Light / Night / System.
 
 ---
 

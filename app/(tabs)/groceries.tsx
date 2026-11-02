@@ -22,7 +22,7 @@ import { EmptyState } from '../../src/components/ui/EmptyState';
 import { ScreenScaffold } from '../../src/components/ui/ScreenScaffold';
 import { useDb, useDbQuery } from '../../src/state/dbStore';
 import { showToast } from '../../src/state/toastStore';
-import { useAppTheme } from '../../src/hooks/useAppTheme';
+import { useAppTheme, usePalette } from '../../src/hooks/useAppTheme';
 import { getCurrentBudget } from '../../src/db/repositories/budgetsRepo';
 import {
   createGroceryList,
@@ -43,7 +43,7 @@ import { spacing } from '../../theme/typography';
 
 export default function GroceriesScreen() {
   const db = useDb();
-  const { glass } = useAppTheme();
+  const { glass, palette } = useAppTheme();
   const today = todayISO();
 
   const { data: lists } = useDbQuery<GroceryListRow[]>(
@@ -184,7 +184,7 @@ export default function GroceriesScreen() {
 
       <GlassButton label="New grocery list" icon={<Plus size={20} strokeWidth={2} color={colors.matcha900} />} onPress={() => void handleNewList()} style={{ backgroundColor: glass.fillStrong }} />
 
-      <AppText variant="footnote" color={colors.textMuted} center>
+      <AppText variant="footnote" color={palette.textMuted} center>
         Finishing a trip records exactly one Groceries expense.
       </AppText>
     </ScreenScaffold>
@@ -194,12 +194,13 @@ export default function GroceriesScreen() {
 /* ------------------------------------------------------------------ */
 
 function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
+  const palette = usePalette();
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <AppText variant="headline">{title}</AppText>
         {hint ? (
-          <AppText variant="caption" color={colors.textMuted}>
+          <AppText variant="caption" color={palette.textMuted}>
             {hint}
           </AppText>
         ) : null}
@@ -220,6 +221,7 @@ interface ListRowProps {
 }
 
 function ListRow({ list, items, onPress, onDelete, remainingBudget, first, last }: ListRowProps) {
+  const palette = usePalette();
   const estimated = estimatedTotalCents(items);
   const purchased = purchasedTotalCents(items);
   const bought = purchasedCount(items);
@@ -246,7 +248,7 @@ function ListRow({ list, items, onPress, onDelete, remainingBudget, first, last 
         <AppText variant="subhead" numberOfLines={1}>
           {list.name}
         </AppText>
-        <AppText variant="caption" color={colors.textMuted} numberOfLines={1}>
+        <AppText variant="caption" color={palette.textMuted} numberOfLines={1}>
           {list.store ? `${list.store} · ` : ''}
           {list.planned_for ? `${formatHumanDate(list.planned_for)} · ` : ''}
           {items.length} item{items.length === 1 ? '' : 's'} · {bought} bought

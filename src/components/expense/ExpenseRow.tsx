@@ -70,7 +70,7 @@ function ExpenseRowImpl({
         <AppText variant="subhead" numberOfLines={1}>
           {title}
         </AppText>
-        <AppText variant="caption" color={colors.textMuted} numberOfLines={1}>
+        <AppText variant="caption" color={palette.textMuted} numberOfLines={1}>
           {[expense.category_name !== title ? expense.category_name : null, expense.payment_name, expense.note]
             .filter(Boolean)
             .join(' · ')}

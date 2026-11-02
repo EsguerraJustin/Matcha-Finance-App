@@ -103,6 +103,11 @@ export function useAppTheme(): AppTheme {
   }, [intensity, prefs]);
 }
 
+/** Just the semantic colours — handy for small components that only tint text/icons. */
+export function usePalette(): Palette {
+  return useAppTheme().palette;
+}
+
 /** Category pastel chip colour for a given category name. */
 export function categoryTint(name: string | null | undefined): string {
   if (!name) return colors.divider;

@@ -42,7 +42,7 @@ export function tabOptionsFor(routeName: string): TabRouteMeta {
 }
 
 function GlassTabBarImpl({ state, navigation, insets }: BottomTabBarProps) {
-  const { glass, solidGlass } = useAppTheme();
+  const { glass, solidGlass, palette } = useAppTheme();
 
   const handlePress = useCallback(
     (route: { key: string; name: string }, isFocused: boolean) => {
@@ -90,9 +90,9 @@ function GlassTabBarImpl({ state, navigation, insets }: BottomTabBarProps) {
               style={styles.tab}
             >
               <View style={[styles.tabInner, focused && styles.tabInnerActive]}>
-                <Icon size={22} strokeWidth={1.75} color={focused ? colors.matcha500 : colors.textMuted} />
+                <Icon size={22} strokeWidth={1.75} color={focused ? palette.primary : palette.textMuted} />
                 {focused ? (
-                  <Text style={styles.tabLabel} numberOfLines={1}>
+                  <Text style={[styles.tabLabel, { color: palette.emphasis }]} numberOfLines={1}>
                     {meta.label}
                   </Text>
                 ) : null}
@@ -183,7 +183,6 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontSize: typeScale.caption.fontSize,
     fontWeight: '600',
-    color: colors.matcha700,
   },
   sheen: {
     position: 'absolute',

@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GlassSurface } from '../glass/GlassSurface';
 import { AppText } from '../ui/AppText';
+import { usePalette } from '../../hooks/useAppTheme';
 import { colors } from '../../../theme/colors';
 import { spacing } from '../../../theme/typography';
 import { TAB_BAR_INSET } from '../glass/GlassTabBar';
@@ -33,6 +34,7 @@ export interface ToastProps extends ToastState {
 }
 
 export function Toast({ visible, message, actionLabel, onAction, onHide, tone = 'default' }: ToastProps) {
+  const palette = usePalette();
   const insets = useSafeAreaInsets();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -52,7 +54,7 @@ export function Toast({ visible, message, actionLabel, onAction, onHide, tone = 
   if (!visible) return null;
 
   const toneColor =
-    tone === 'warning' ? colors.warningText : tone === 'success' ? colors.successText : colors.matcha900;
+    tone === 'warning' ? palette.warningText : tone === 'success' ? palette.successText : palette.text;
 
   return (
     <View pointerEvents="box-none" style={[styles.root, { bottom: insets.bottom + TAB_BAR_INSET + spacing.md }]}>
@@ -68,7 +70,7 @@ export function Toast({ visible, message, actionLabel, onAction, onHide, tone = 
                 <View style={[styles.divider, { backgroundColor: colors.matcha200 }]} />
                 <AppText
                   variant="subhead"
-                  color={colors.matcha700}
+                  color={palette.emphasis}
                   accessibilityRole="button"
                   onPress={() => {
                     onAction();

@@ -20,6 +20,7 @@ import { authenticateBiometric, biometricAvailable, validPin, verifyPin } from '
 import { warningHaptic } from '../lib/haptics';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/typography';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'back'] as const;
 
@@ -28,6 +29,7 @@ export interface AppLockScreenProps {
 }
 
 export default function AppLockScreen({ onUnlock }: AppLockScreenProps) {
+  const { palette } = useAppTheme();
   const appLockEnabled = useSettingsStore((state) => state.appLockEnabled);
   const [pin, setPin] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +95,7 @@ export default function AppLockScreen({ onUnlock }: AppLockScreenProps) {
           <AppText variant="title" center>
             Welcome back
           </AppText>
-          <AppText variant="callout" color={colors.textMuted} center>
+          <AppText variant="callout" color={palette.textMuted} center>
             {appLockEnabled ? 'Enter your PIN to open your wallet.' : 'Unlockingâ€¦'}
           </AppText>
         </View>
@@ -101,12 +103,12 @@ export default function AppLockScreen({ onUnlock }: AppLockScreenProps) {
         {/* PIN dots ------------------------------------------------- */}
         <View style={styles.dots} accessibilityRole="summary" accessibilityLabel={`${pin.length} of digits entered`}>
           {[0, 1, 2, 3, 4, 5].map((index) => (
-            <View key={index} style={[styles.dot, pin.length > index && styles.dotOn]} />
+            <View key={index} style={[styles.dot, pin.length > index && styles.dotOn, { borderColor: palette.primary }, pin.length > index && { backgroundColor: palette.primary }]} />
           ))}
         </View>
 
         {error ? (
-          <AppText variant="footnote" color={colors.dangerText} center>
+          <AppText variant="footnote" color={palette.dangerText} center>
             {error}
           </AppText>
         ) : null}
@@ -126,7 +128,7 @@ export default function AppLockScreen({ onUnlock }: AppLockScreenProps) {
                   onPress={() => handleKey(key)}
                   style={styles.keyWide}
                 >
-                  <AppText variant="headline" color={colors.matcha700}>
+                  <AppText variant="headline" color={palette.emphasis}>
                     âŒ«
                   </AppText>
                 </Pressable>
@@ -136,9 +138,9 @@ export default function AppLockScreen({ onUnlock }: AppLockScreenProps) {
                   accessibilityRole="button"
                   accessibilityLabel={key}
                   onPress={() => handleKey(key)}
-                  style={({ pressed }) => [styles.key, key === '0' && styles.keyWide, pressed && styles.keyPressed]}
+                    style={({ pressed }) => [styles.key, key === '0' && styles.keyWide, pressed && { backgroundColor: palette.cardFill }]}
                 >
-                  <AppText variant="largeTitle" color={colors.matcha900}>
+                  <AppText variant="largeTitle" color={palette.text}>
                     {key}
                   </AppText>
                 </Pressable>
@@ -153,7 +155,7 @@ export default function AppLockScreen({ onUnlock }: AppLockScreenProps) {
           <GlassButton
             label="Use biometrics"
             variant="secondary"
-            icon={<Fingerprint size={18} strokeWidth={1.75} color={colors.matcha700} />}
+            icon={<Fingerprint size={18} strokeWidth={1.75} color={palette.emphasis} />}
             onPress={() => void handleBiometric()}
           />
         ) : null}

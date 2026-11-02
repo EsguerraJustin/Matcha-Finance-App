@@ -68,10 +68,16 @@ export interface Palette {
   cardFill: string;
   text: string;
   textMuted: string;
+  /** Links, emphasis and secondary icons. */
+  emphasis: string;
   divider: string;
   primary: string;
   primaryPressed: string;
   onPrimary: string;
+  dangerText: string;
+  dangerBg: string;
+  successText: string;
+  warningText: string;
   isDark: boolean;
 }
 
@@ -80,10 +86,15 @@ export const lightPalette: Palette = {
   cardFill: colors.surface,
   text: colors.matcha900,
   textMuted: colors.textMuted,
+  emphasis: colors.matcha700,
   divider: colors.divider,
   primary: colors.matcha500,
   primaryPressed: colors.matcha600,
   onPrimary: colors.matcha900,
+  dangerText: colors.dangerText,
+  dangerBg: colors.dangerBg,
+  successText: colors.successText,
+  warningText: colors.warningText,
   isDark: false,
 };
 
@@ -92,11 +103,50 @@ export const darkPalette: Palette = {
   cardFill: '#1E2E24',
   text: '#EAF3E6',
   textMuted: '#9DB3A2',
+  emphasis: '#B8D8A0',
   divider: 'rgba(255,255,255,0.10)',
   primary: colors.matcha400,
   primaryPressed: colors.matcha500,
   onPrimary: '#16211A',
+  dangerText: '#F2B0A8',
+  dangerBg: 'rgba(248,207,202,0.18)',
+  successText: '#A9D9AE',
+  warningText: '#EBCB8B',
   isDark: true,
 };
+
+/**
+ * Maps a light-theme token onto the matching semantic colour for the active
+ * palette. Screens can keep using `colors.*` in props; text and icons rendered
+ * through the helpers below stay legible in Matcha Night instead of becoming
+ * dark-on-dark.
+ */
+export function resolveTone(color: string, palette: Palette): string {
+  switch (color) {
+    case colors.matcha900:
+      return palette.text;
+    case colors.textMuted:
+      return palette.textMuted;
+    case colors.matcha700:
+      return palette.emphasis;
+    case colors.matcha600:
+      return palette.isDark ? colors.matcha300 : colors.matcha600;
+    case colors.matcha500:
+      return palette.primary;
+    case colors.surface:
+    case colors.surfaceAlt:
+      return palette.cardFill;
+    case colors.dangerText:
+      return palette.dangerText;
+    case colors.dangerBg:
+      return palette.dangerBg;
+    case colors.successText:
+      return palette.successText;
+    case colors.warningText:
+      return palette.warningText;
+    default:
+      return color;
+  }
+}
 
 export default colors;

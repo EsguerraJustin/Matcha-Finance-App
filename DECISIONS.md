@@ -104,3 +104,7 @@ decision the brief left open ("pick the sensible default and keep going").
 | P6-4 | Matcha Night dark mode fully wired: theme setting toggles `AuroraBackground` (night gradient/orbs) and `GlassSurface` (dark tokens); `Settings` exposes Light/Night/System. | Brief Section 4.4. |
 | P6-5 | `app.json` config plugins cover splash, image picker (photos/camera strings, no microphone), Face ID string, secure store and local notifications. The app is phone-only (`supportsTablet: false`). | Brief Section 14 and least-permission install. |
 | P6-6 | README documents EAS and local Gradle APK/AAB builds; `android.blockedPermissions` strips INTERNET, ACCESS_NETWORK_STATE and ACCESS_WIFI_STATE. | Brief Section 14. |
+| P6-7 | `resolveTone()` maps light tokens to semantic palette colours so every `<AppText>` and icon is readable in Matcha Night without per-file branches. | GUIDE §4.5. |
+| P6-8 | `usePalette()` lightweight hook for components that only need colours (no glass tokens). | GUIDE §4.5. |
+| P6-9 | Unused `onboardingComplete` setting removed (no onboarding screen exists). | GUIDE §4.9. |
+| P6-10 | `ScreenScaffold` ScrollView gets `automaticallyAdjustKeyboardInsets` and `keyboardDismissMode="on-drag"` so form screens don't hide behind the keyboard. | GUIDE §4.5. |

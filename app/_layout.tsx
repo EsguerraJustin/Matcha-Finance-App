@@ -25,9 +25,11 @@ import { useFonts } from 'expo-font';
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 
 import { AuroraBackground } from '../src/components/glass/AuroraBackground';
+import { darkPalette, lightPalette } from '../theme/colors';
 import { Toast } from '../src/components/ui/Toast';
 import { useToastStore, hideToast } from '../src/state/toastStore';
 import { useSettingsStore } from '../src/state/settingsStore';
+import { useAccessibilityPrefs } from '../src/hooks/useAppTheme';
 import { getDatabase } from '../src/db/client';
 import { seedDatabase } from '../src/db/seed';
 import { runBootRoutine } from '../src/db/boot';
@@ -39,8 +41,8 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 
 export default function RootLayout() {
   const hydrate = useSettingsStore((state) => state.hydrate);
-  const theme = useSettingsStore((state) => state.theme);
   const appLockEnabled = useSettingsStore((state) => state.appLockEnabled);
+  const { isDark } = useAccessibilityPrefs();
   const toast = useToastStore();
   const [ready, setReady] = useState(false);
   // `null` until the hydrated setting has decided the initial state. Gating on
@@ -92,7 +94,7 @@ export default function RootLayout() {
   }, [ready]);
 
   if (!lockReady) {
-    return <View style={styles.splash} />;
+    return <View style={[styles.splash, { backgroundColor: isDark ? darkPalette.background : lightPalette.background }]} />;
   }
 
   if (needsLock) {
@@ -100,7 +102,7 @@ export default function RootLayout() {
       <GestureHandlerRootView style={styles.root}>
         <SafeAreaProvider>
           <View style={styles.root}>
-            <StatusBar style="dark" />
+            <StatusBar style={isDark ? 'light' : 'dark'} />
             <AppLockScreen onUnlock={() => setUnlocked(true)} />
           </View>
         </SafeAreaProvider>
@@ -113,7 +115,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <View style={styles.root}>
           <AuroraBackground />
-          <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
+          <StatusBar style={isDark ? 'light' : 'dark'} />
           <Stack
             screenOptions={{
               headerShown: false,

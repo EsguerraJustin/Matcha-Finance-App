@@ -52,7 +52,7 @@ function GlassButtonImpl({
   accessibilityHint,
   testID,
 }: GlassButtonProps) {
-  const { glass, solidGlass } = useAppTheme();
+  const { glass, solidGlass, palette: themePalette } = useAppTheme();
 
   const handlePress = useCallback(() => {
     if (disabled || loading) return;
@@ -65,7 +65,7 @@ function GlassButtonImpl({
     primary: { background: colors.matcha500, pressed: colors.matcha600, text: colors.matcha900, blur: false },
     secondary: { background: glass.fillStrong, pressed: colors.matcha100, text: colors.matcha700, blur: true },
     ghost: { background: 'transparent', pressed: colors.matcha100, text: colors.matcha700, blur: false },
-    destructive: { background: colors.dangerBg, pressed: '#F2B9B1', text: colors.dangerText, blur: false },
+    destructive: { background: themePalette.dangerBg, pressed: '#F2B9B1', text: themePalette.dangerText, blur: false },
   }[variant];
 
   const height = HEIGHTS[size];
@@ -80,6 +80,7 @@ function GlassButtonImpl({
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: disabled || loading, busy: loading }}
       testID={testID}
+      hitSlop={size === 'small' ? { top: 4, bottom: 4, left: 2, right: 2 } : undefined}
       style={({ pressed }) => [
         styles.pressable,
         fullWidth && styles.fullWidth,

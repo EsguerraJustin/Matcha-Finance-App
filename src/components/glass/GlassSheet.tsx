@@ -49,7 +49,7 @@ export const GlassSheet = forwardRef<BottomSheet, GlassSheetProps>(function Glas
   { children, detent = 'medium', snapPoints, index = 0, scrollable = false, onClose, onChange, transparentBackdrop = false, title },
   ref,
 ) {
-  const { glass } = useAppTheme();
+  const { glass, palette } = useAppTheme();
 
   const points = useMemo(() => snapPoints ?? [DETENT_POINTS[detent]], [detent, snapPoints]);
 
@@ -79,7 +79,7 @@ export const GlassSheet = forwardRef<BottomSheet, GlassSheetProps>(function Glas
       backgroundStyle={styles.transparentBackground}
       handleComponent={() => (
         <View style={styles.handleWrapper} accessibilityRole="adjustable" accessibilityLabel={title ?? 'Sheet'}>
-          <View style={[styles.grabber, { backgroundColor: colors.textMuted }]} />
+          <View style={[styles.grabber, { backgroundColor: palette.textMuted }]} />
         </View>
       )}
       backdropComponent={renderBackdrop}

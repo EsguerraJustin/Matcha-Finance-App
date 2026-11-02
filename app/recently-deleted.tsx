@@ -15,7 +15,7 @@ import { EmptyState } from '../src/components/ui/EmptyState';
 import { ScreenScaffold } from '../src/components/ui/ScreenScaffold';
 import { useDb, useDbQuery } from '../src/state/dbStore';
 import { showToast } from '../src/state/toastStore';
-import { categoryTint } from '../src/hooks/useAppTheme';
+import { categoryTint, usePalette } from '../src/hooks/useAppTheme';
 import {
   hardDeleteExpense,
   listExpenses,
@@ -27,6 +27,7 @@ import { colors } from '../theme/colors';
 import { spacing } from '../theme/typography';
 
 export default function RecentlyDeletedScreen() {
+  const palette = usePalette();
   const db = useDb();
   const today = todayISO();
 
@@ -85,17 +86,17 @@ export default function RecentlyDeletedScreen() {
                   <AppText variant="subhead" numberOfLines={1}>
                     {expense.type_name ?? expense.category_name}
                   </AppText>
-                  <AppText variant="caption" color={colors.textMuted} numberOfLines={1}>
+                  <AppText variant="caption" color={palette.textMuted} numberOfLines={1}>
                     {expense.note || expense.payment_name} · deleted {age === 0 ? 'today' : `${age} day${age === 1 ? '' : 's'} ago`}
                   </AppText>
                 </View>
                 <MoneyText cents={expense.amount_cents} variant="subhead" />
 
                 <Pressable onPress={() => handleRestore(expense)} accessibilityRole="button" accessibilityLabel="Restore" hitSlop={8} style={styles.action}>
-                  <RotateCcw size={18} strokeWidth={1.75} color={colors.matcha700} />
+                  <RotateCcw size={18} strokeWidth={1.75} color={palette.emphasis} />
                 </Pressable>
                 <Pressable onPress={() => handlePurge(expense)} accessibilityRole="button" accessibilityLabel="Delete forever" hitSlop={8} style={styles.action}>
-                  <Trash2 size={18} strokeWidth={1.75} color={colors.dangerText} />
+                  <Trash2 size={18} strokeWidth={1.75} color={palette.dangerText} />
                 </Pressable>
               </Pressable>
             );
@@ -103,7 +104,7 @@ export default function RecentlyDeletedScreen() {
         </GlassSurface>
       )}
 
-      <AppText variant="footnote" color={colors.textMuted} center>
+      <AppText variant="footnote" color={palette.textMuted} center>
         Deleting forever also removes the receipt photo.
       </AppText>
     </ScreenScaffold>

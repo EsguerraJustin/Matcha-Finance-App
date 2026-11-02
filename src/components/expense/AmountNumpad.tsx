@@ -24,7 +24,7 @@ export interface AmountNumpadProps {
 }
 
 function AmountNumpadImpl({ digits, onChange, style }: AmountNumpadProps) {
-  const { solidGlass } = useAppTheme();
+  const { solidGlass, palette } = useAppTheme();
 
   const press = useCallback(
     (key: NumpadKey) => {
@@ -67,7 +67,7 @@ const layout: readonly Keycap[] = [
               style={styles.key}
             >
               <GlassSurface level="low" padding={0} radius={KEY_RADIUS} fill="fill" style={styles.keySurface}>
-                <AppText variant="title" color={colors.matcha700}>
+                <AppText variant="title" color={palette.emphasis}>
                   00
                 </AppText>
               </GlassSurface>
@@ -87,7 +87,7 @@ const layout: readonly Keycap[] = [
               style={styles.key}
             >
               <View style={[styles.keySurface, styles.plainKey, { borderColor: solidGlass ? colors.divider : 'transparent' }]}>
-                <Delete size={26} strokeWidth={1.75} color={colors.matcha700} />
+                <Delete size={26} strokeWidth={1.75} color={palette.emphasis} />
               </View>
             </Pressable>
           );

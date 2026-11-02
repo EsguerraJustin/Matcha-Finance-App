@@ -36,11 +36,12 @@ import { listQuickTemplates, type QuickTemplateRow } from '../../src/db/reposito
 import { upcomingBills } from '../../src/lib/recurring';
 import { listRecurringRules } from '../../src/db/repositories/recurringRepo';
 import { totalSetAside } from '../../src/db/repositories/goalsRepo';
-import { categoryTint } from '../../src/hooks/useAppTheme';
+import { categoryTint, usePalette } from '../../src/hooks/useAppTheme';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/typography';
 
 export default function HomeScreen() {
+  const palette = usePalette();
   const db = useDb();
   const monthStartsOn = useSettingsStore((state) => state.monthStartsOn);
   const today = todayISO();
@@ -100,7 +101,7 @@ export default function HomeScreen() {
           style={styles.moreButton}
           hitSlop={8}
         >
-          <MoreHorizontal size={24} strokeWidth={1.75} color={colors.matcha700} />
+          <MoreHorizontal size={24} strokeWidth={1.75} color={palette.emphasis} />
         </Pressable>
       }
     >
@@ -108,11 +109,11 @@ export default function HomeScreen() {
       <GlassCard fill="fillTintGreen" level="high" padding={spacing.lg}>
         <View style={styles.hero}>
           <View style={styles.heroText}>
-            <AppText variant="footnote" color={colors.textMuted}>
+            <AppText variant="footnote" color={palette.textMuted}>
               Safe to spend today
             </AppText>
             <MoneyText cents={summary?.safeDailyCents ?? 0} variant="largeTitle" style={styles.heroAmount} />
-            <AppText variant="caption" color={colors.textMuted}>
+            <AppText variant="caption" color={palette.textMuted}>
               {summary
                 ? `${summary.daysLeft} day${summary.daysLeft === 1 ? '' : 's'} left · ${budget?.name ?? 'No budget'}`
                 : 'Set a budget to unlock this'}
@@ -135,23 +136,23 @@ export default function HomeScreen() {
       {/* 2 — allowance + budget minis -------------------------------- */}
       <View style={styles.row}>
         <GlassCard style={styles.half} padding={14}>
-          <AppText variant="caption" color={colors.textMuted}>
+          <AppText variant="caption" color={palette.textMuted}>
             Allowance left
           </AppText>
           <MoneyText cents={allowance.net_cents} variant="title2" />
           <ProgressBar progress={allowanceUsage} height={6} style={styles.miniBar} accessibilityLabel="Allowance used" />
-          <AppText variant="caption" color={colors.textMuted}>
+          <AppText variant="caption" color={palette.textMuted}>
             {allowance.runwayDays === null ? 'Nothing spent yet' : `${allowance.runwayDays} days of runway`}
           </AppText>
         </GlassCard>
 
         <GlassCard style={styles.half} padding={14}>
-          <AppText variant="caption" color={colors.textMuted}>
+          <AppText variant="caption" color={palette.textMuted}>
             {budget?.kind === 'weekly' ? 'Budget left' : budget ? 'Budget left' : 'No budget'}
           </AppText>
           <MoneyText cents={summary?.remaining_cents ?? 0} variant="title2" />
           <ProgressBar progress={summary?.usage ?? 0} height={6} style={styles.miniBar} accessibilityLabel="Budget used" />
-          <AppText variant="caption" color={colors.textMuted}>
+          <AppText variant="caption" color={palette.textMuted}>
             {summary ? budgetCopy(summary) : 'Tap More to set one'}
           </AppText>
         </GlassCard>
@@ -188,9 +189,9 @@ export default function HomeScreen() {
         <GlassSurface
           radius={20}
           padding={14}
-          style={{ backgroundColor: summary.threshold === 'exceeded' ? colors.dangerBg : colors.warningBg }}
+          style={{ backgroundColor: summary.threshold === 'exceeded' ? palette.dangerBg : colors.warningBg }}
         >
-          <AppText variant="subhead" color={summary.threshold === 'exceeded' ? colors.dangerText : colors.warningText}>
+          <AppText variant="subhead" color={summary.threshold === 'exceeded' ? palette.dangerText : palette.warningText}>
             {budgetCopy(summary)}
           </AppText>
         </GlassSurface>
@@ -206,7 +207,7 @@ export default function HomeScreen() {
                 <AppText variant="subhead" numberOfLines={1} style={styles.billLabel}>
                   {bill.kind === 'allowance' ? 'Allowance' : 'Bill'}
                 </AppText>
-                <AppText variant="caption" color={colors.textMuted}>
+                <AppText variant="caption" color={palette.textMuted}>
                   {relativeDayLabel(bill.dueOn, today)}
                 </AppText>
                 <MoneyText cents={bill.amount_cents} variant="subhead" />
@@ -226,7 +227,7 @@ export default function HomeScreen() {
             accessibilityLabel="See all expenses"
             hitSlop={8}
           >
-            <AppText variant="caption" color={colors.matcha700}>
+            <AppText variant="caption" color={palette.emphasis}>
               See all
             </AppText>
           </Pressable>
@@ -255,11 +256,11 @@ export default function HomeScreen() {
 
       {/* 7 — weekly insight ------------------------------------------ */}
       {summary && budget ? (
-        <AppText variant="footnote" color={colors.textMuted} center>
+        <AppText variant="footnote" color={palette.textMuted} center>
           {budgetCopy(summary)}
         </AppText>
       ) : (
-        <AppText variant="footnote" color={colors.textMuted} center>
+        <AppText variant="footnote" color={palette.textMuted} center>
           Set an allowance and a weekly budget to see your safe-to-spend number.
         </AppText>
       )}

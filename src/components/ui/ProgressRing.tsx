@@ -38,7 +38,7 @@ function ProgressRingImpl({
   children,
   accessibilityLabel,
 }: ProgressRingProps) {
-  const { reduceMotion } = useAppTheme();
+  const { reduceMotion, palette } = useAppTheme();
   const animated = useSharedValue(0);
 
   useEffect(() => {
@@ -66,8 +66,8 @@ function ProgressRingImpl({
       <Svg width={size} height={size}>
         <Defs>
           <LinearGradient id="ringGradient" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor={overBudget ? colors.dangerText : colors.matcha400} />
-            <Stop offset="1" stopColor={overBudget ? colors.dangerBg : colors.matcha600} />
+            <Stop offset="0" stopColor={overBudget ? palette.dangerText : colors.matcha400} />
+            <Stop offset="1" stopColor={overBudget ? palette.dangerBg : colors.matcha600} />
           </LinearGradient>
         </Defs>
         <Circle cx={size / 2} cy={size / 2} r={radius} stroke={trackColor} strokeWidth={thickness} fill="none" />

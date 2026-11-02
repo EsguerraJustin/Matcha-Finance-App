@@ -61,7 +61,7 @@ export default function ReportsScreen() {
   const weekStartsOn = useSettingsStore((state) => state.weekStartsOn) as WeekStart;
   const monthStartsOn = useSettingsStore((state) => state.monthStartsOn);
   const currencySymbol = useSettingsStore((state) => state.currencySymbol);
-  const { glass } = useAppTheme();
+  const { glass, palette } = useAppTheme();
 
   const [period, setPeriod] = useState<ReportPeriod>('week');
 
@@ -160,7 +160,7 @@ export default function ReportsScreen() {
           style={styles.iconButton}
           hitSlop={8}
         >
-          <Share2 size={22} strokeWidth={1.75} color={colors.matcha700} />
+          <Share2 size={22} strokeWidth={1.75} color={palette.emphasis} />
         </Pressable>
       }
     >
@@ -177,16 +177,16 @@ export default function ReportsScreen() {
         <>
           {/* Hero total ------------------------------------------------- */}
           <GlassSurface level="high" radius={20} padding={spacing.lg} style={{ backgroundColor: glass.fillTintGreen }}>
-            <AppText variant="footnote" color={colors.textMuted}>
+            <AppText variant="footnote" color={palette.textMuted}>
               Total spent
             </AppText>
             <MoneyText cents={totals.totalCents} variant="largeTitle" style={styles.heroAmount} />
             <View style={styles.heroMeta}>
-              <AppText variant="caption" color={colors.textMuted}>
+              <AppText variant="caption" color={palette.textMuted}>
                 {totals.count} {totals.count === 1 ? 'entry' : 'entries'} · {totals.daysWithSpend}{' '}
                 {totals.daysWithSpend === 1 ? 'day' : 'days'} spending
               </AppText>
-              <AppText variant="caption" color={colors.textMuted}>
+              <AppText variant="caption" color={palette.textMuted}>
                 {formatMoney(totals.averagePerDayCents, { symbol: currencySymbol, compactZeroDecimals: true })} / day
               </AppText>
             </View>
@@ -196,18 +196,18 @@ export default function ReportsScreen() {
           <GlassSurface radius={20} padding={14}>
             <View style={styles.compareRow}>
               <View style={styles.compareCell}>
-                <AppText variant="caption" color={colors.textMuted}>
+                <AppText variant="caption" color={palette.textMuted}>
                   Previous period
                 </AppText>
                 <MoneyText cents={comparison.previousCents} variant="subhead" />
               </View>
               <View style={styles.compareCellRight}>
-                <AppText variant="caption" color={colors.textMuted}>
+                <AppText variant="caption" color={palette.textMuted}>
                   Change
                 </AppText>
                 <AppText
                   variant="headline"
-                  color={comparison.direction === 'up' ? colors.dangerText : comparison.direction === 'down' ? colors.successText : colors.textMuted}
+                  color={comparison.direction === 'up' ? palette.dangerText : comparison.direction === 'down' ? palette.successText : colors.textMuted}
                 >
                   {comparison.direction === 'same'
                     ? 'no change'
@@ -228,7 +228,7 @@ export default function ReportsScreen() {
                     <AppText variant="subhead" numberOfLines={1} style={styles.legendLabel}>
                       {slice.label}
                     </AppText>
-                    <AppText variant="caption" color={colors.textMuted}>
+                    <AppText variant="caption" color={palette.textMuted}>
                       {Math.round(slice.share * 100)}%
                     </AppText>
                     <MoneyText cents={slice.value} variant="subhead" />
@@ -255,7 +255,7 @@ export default function ReportsScreen() {
                       ]}
                     />
                     {totals.daily.length <= 14 ? (
-                      <AppText variant="caption" color={colors.textMuted}>
+                      <AppText variant="caption" color={palette.textMuted}>
                         {point.label}
                       </AppText>
                     ) : null}
@@ -306,7 +306,7 @@ export default function ReportsScreen() {
           {/* Grocery summary ------------------------------------------- */}
           {totals.groceryCents > 0 ? (
             <GlassSurface radius={20} padding={14}>
-              <AppText variant="footnote" color={colors.textMuted}>
+              <AppText variant="footnote" color={palette.textMuted}>
                 Grocery trips
               </AppText>
               <MoneyText cents={totals.groceryCents} variant="title2" />
@@ -316,7 +316,7 @@ export default function ReportsScreen() {
           <GlassButton
             label="Export CSV"
             variant="secondary"
-            icon={<Share2 size={18} strokeWidth={1.75} color={colors.matcha700} />}
+            icon={<Share2 size={18} strokeWidth={1.75} color={palette.emphasis} />}
             onPress={() => void handleExport()}
           />
         </>

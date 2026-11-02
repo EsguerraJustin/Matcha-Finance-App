@@ -20,7 +20,7 @@ import { AppText } from '../../src/components/ui/AppText';
 import { ScreenScaffold } from '../../src/components/ui/ScreenScaffold';
 import { ChipRow, type ChipRowItem } from '../../src/components/expense/ChipRow';
 import { GlassSegmented } from '../../src/components/glass/GlassSegmented';
-import { useAppTheme } from '../../src/hooks/useAppTheme';
+import { useAppTheme, usePalette } from '../../src/hooks/useAppTheme';
 import { useSettingsStore } from '../../src/state/settingsStore';
 import { notifyDbChanged, useDb } from '../../src/state/dbStore';
 import { showToast } from '../../src/state/toastStore';
@@ -36,7 +36,7 @@ export default function SettingsScreen() {
   const settings = useSettingsStore();
   const update = useSettingsStore((state) => state.update);
   const db = useDb();
-  const { glass, solidGlass, isDark } = useAppTheme();
+  const { glass, solidGlass, isDark, palette } = useAppTheme();
   const [pinDraft, setPinDraft] = useState('');
   const [biometric, setBiometric] = useState(false);
 
@@ -175,7 +175,7 @@ export default function SettingsScreen() {
         />
         <View style={styles.glassPreview}>
           <View style={[styles.swatch, { backgroundColor: glass.fill, borderColor: glass.border, borderRadius: 20 }]} />
-          <AppText variant="caption" color={colors.textMuted}>
+          <AppText variant="caption" color={palette.textMuted}>
             {solidGlass ? 'Rendering the solid fallback — the look is kept, the blur is not.' : 'Blur is enabled at your chosen intensity.'}
           </AppText>
         </View>
@@ -245,7 +245,7 @@ export default function SettingsScreen() {
         <LinkRow label="Backup and restore" hint="Export, restore and erase" onPress={() => router.push('/settings/backup')} />
         <LinkRow label="Recently deleted" hint="Restore a mistaken swipe" onPress={() => router.push('/recently-deleted')} last />
         {biometric ? (
-          <AppText variant="footnote" color={colors.textMuted}>
+          <AppText variant="footnote" color={palette.textMuted}>
             Biometrics are available on this device and offered on the lock screen.
           </AppText>
         ) : null}
@@ -269,7 +269,7 @@ export default function SettingsScreen() {
         </Group>
       ) : null}
 
-      <AppText variant="footnote" color={colors.textMuted} center>
+      <AppText variant="footnote" color={palette.textMuted} center>
         Matcha Wallet is offline by design. Nothing here leaves your phone.
       </AppText>
     </ScreenScaffold>
@@ -279,6 +279,7 @@ export default function SettingsScreen() {
 /* ------------------------------------------------------------------ */
 
 function PinDots({ value, onChange }: { value: string; onChange: (next: string) => void }) {
+  const palette = usePalette();
   const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
 
   return (
@@ -304,7 +305,7 @@ function PinDots({ value, onChange }: { value: string; onChange: (next: string) 
         ))}
       </View>
       <Pressable accessibilityRole="button" accessibilityLabel="Backspace" onPress={() => onChange(value.slice(0, -1))} style={styles.backspace}>
-        <AppText variant="caption" color={colors.matcha700}>
+        <AppText variant="caption" color={palette.emphasis}>
           Delete
         </AppText>
       </Pressable>
@@ -324,12 +325,13 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
 }
 
 function Row({ label, hint, children, last }: { label: string; hint?: string; children: React.ReactNode; last?: boolean }) {
+  const palette = usePalette();
   return (
     <View style={[styles.row, last && styles.rowLast]}>
       <View style={styles.rowHeader}>
         <AppText variant="subhead">{label}</AppText>
         {hint ? (
-          <AppText variant="caption" color={colors.textMuted}>
+          <AppText variant="caption" color={palette.textMuted}>
             {hint}
           </AppText>
         ) : null}
@@ -352,12 +354,13 @@ function ToggleRow({
   onChange: (next: boolean) => void;
   last?: boolean;
 }) {
+  const palette = usePalette();
   return (
     <View style={[styles.toggleRow, last && styles.rowLast]}>
       <View style={styles.rowHeader}>
         <AppText variant="subhead">{label}</AppText>
         {hint ? (
-          <AppText variant="caption" color={colors.textMuted}>
+          <AppText variant="caption" color={palette.textMuted}>
             {hint}
           </AppText>
         ) : null}
@@ -365,8 +368,8 @@ function ToggleRow({
       <Switch
         value={value}
         onValueChange={onChange}
-        trackColor={{ true: colors.matcha500, false: colors.matcha200 }}
-        thumbColor={colors.surface}
+trackColor={{ true: palette.emphasis, false: colors.matcha200 }}
+thumbColor={palette.cardFill}
         accessibilityLabel={label}
       />
     </View>
@@ -374,6 +377,7 @@ function ToggleRow({
 }
 
 function LinkRow({ label, hint, onPress, last }: { label: string; hint: string; onPress: () => void; last?: boolean }) {
+  const palette = usePalette();
   return (
     <Pressable
       onPress={onPress}
@@ -384,11 +388,11 @@ function LinkRow({ label, hint, onPress, last }: { label: string; hint: string; 
     >
       <View style={styles.rowHeader}>
         <AppText variant="subhead">{label}</AppText>
-        <AppText variant="caption" color={colors.textMuted}>
+        <AppText variant="caption" color={palette.textMuted}>
           {hint}
         </AppText>
       </View>
-      <ChevronRight size={18} strokeWidth={1.75} color={colors.textMuted} />
+      <ChevronRight size={18} strokeWidth={1.75} color={palette.textMuted} />
     </Pressable>
   );
 }

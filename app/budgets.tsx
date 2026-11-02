@@ -16,7 +16,7 @@ import { EmptyState } from '../src/components/ui/EmptyState';
 import { ScreenScaffold } from '../src/components/ui/ScreenScaffold';
 import { ProgressBar } from '../src/components/ui/ProgressBar';
 import { GlassSegmented } from '../src/components/glass/GlassSegmented';
-import { useAppTheme } from '../src/hooks/useAppTheme';
+import { useAppTheme, usePalette } from '../src/hooks/useAppTheme';
 import { useDb, useDbQuery } from '../src/state/dbStore';
 import { showToast } from '../src/state/toastStore';
 import { useSettingsStore } from '../src/state/settingsStore';
@@ -46,7 +46,7 @@ const KIND_OPTIONS: ReadonlyArray<{ value: KindOption; label: string }> = [
 
 export default function BudgetsScreen() {
   const db = useDb();
-  const { glass } = useAppTheme();
+  const { glass, palette } = useAppTheme();
   const today = todayISO();
   const weekStartsOn = useSettingsStore((state) => state.weekStartsOn) as WeekStart;
   const monthStartsOn = useSettingsStore((state) => state.monthStartsOn);
@@ -144,14 +144,14 @@ export default function BudgetsScreen() {
               >
                 <View style={styles.budgetTitle}>
                   <AppText variant="subhead">{budget.name}</AppText>
-                  <AppText variant="caption" color={colors.textMuted}>
+                  <AppText variant="caption" color={palette.textMuted}>
                     {formatShortDate(budget.start_date)} – {formatShortDate(budget.end_date)}
                     {budget.rollover_in_cents ? ` · +${formatMoney(budget.rollover_in_cents, { compactZeroDecimals: true })} rolled in` : ''}
                   </AppText>
                 </View>
                 <View style={styles.budgetAmounts}>
                   <MoneyText cents={budget.spent_cents} variant="subhead" />
-                  <AppText variant="caption" color={colors.textMuted}>
+                  <AppText variant="caption" color={palette.textMuted}>
                     of {formatMoney(budget.total_cents, { compactZeroDecimals: true })}
                   </AppText>
                 </View>
@@ -163,7 +163,7 @@ export default function BudgetsScreen() {
                 style={styles.budgetBar}
               />
 
-              <AppText variant="caption" color={summary.threshold === 'ok' ? colors.textMuted : summary.threshold === 'warning' ? colors.warningText : colors.dangerText}>
+              <AppText variant="caption" color={summary.threshold === 'ok' ? colors.textMuted : summary.threshold === 'warning' ? palette.warningText : palette.dangerText}>
                 {budgetCopy(summary)}
               </AppText>
 
@@ -175,11 +175,11 @@ export default function BudgetsScreen() {
                     <Stat label="Projected" cents={summary.projectedCents} />
                   </View>
 
-                  <AppText variant="footnote" color={colors.textMuted}>
+                  <AppText variant="footnote" color={palette.textMuted}>
                     Per-category limits
                   </AppText>
                   {limits.length === 0 ? (
-                    <AppText variant="caption" color={colors.textMuted}>
+                    <AppText variant="caption" color={palette.textMuted}>
                       None set — the whole budget is shared.
                     </AppText>
                   ) : (
@@ -197,7 +197,7 @@ export default function BudgetsScreen() {
                         </View>
                         <MoneyText cents={limit.limit_cents} variant="caption" />
                         {isOverCategoryLimit(limit.limit_cents, limit.spent_cents) ? (
-                          <AppText variant="caption" color={colors.dangerText}>
+                          <AppText variant="caption" color={palette.dangerText}>
                             over
                           </AppText>
                         ) : null}
@@ -206,7 +206,7 @@ export default function BudgetsScreen() {
                   )}
 
                   <View style={styles.limitPicker}>
-                    <AppText variant="caption" color={colors.textMuted}>
+                    <AppText variant="caption" color={palette.textMuted}>
                       Set a limit for
                     </AppText>
                     <ScrollableCategories
@@ -240,7 +240,7 @@ export default function BudgetsScreen() {
                       label="Delete"
                       variant="destructive"
                       size="small"
-                      icon={<Trash2 size={16} strokeWidth={1.75} color={colors.dangerText} />}
+                      icon={<Trash2 size={16} strokeWidth={1.75} color={palette.dangerText} />}
                       onPress={() => db && void deleteBudget(db, budget.id)}
                       style={styles.action}
                     />
@@ -272,12 +272,12 @@ export default function BudgetsScreen() {
         ) : null}
 
         {kind === 'custom' && endText < range.start ? (
-          <AppText variant="caption" color={colors.dangerText}>
+          <AppText variant="caption" color={palette.dangerText}>
             The end date must be on or after the start date.
           </AppText>
         ) : null}
 
-        <AppText variant="caption" color={colors.textMuted}>
+        <AppText variant="caption" color={palette.textMuted}>
           {formatShortDate(range.start)} – {formatShortDate(range.end)}
         </AppText>
 
@@ -288,13 +288,13 @@ export default function BudgetsScreen() {
           disabled={kind === 'custom' && endText < range.start}
         />
 
-        <AppText variant="caption" color={colors.textMuted}>
+        <AppText variant="caption" color={palette.textMuted}>
           {formatShortDate(range.start)} – {formatShortDate(range.end)}
         </AppText>
       </GlassSurface>
 
       <GlassSurface radius={20} padding={12} style={{ borderColor: glass.borderInner }}>
-        <AppText variant="caption" color={colors.textMuted}>
+        <AppText variant="caption" color={palette.textMuted}>
           Tap any budget to see remaining, safe daily, projected spend and per-category limits.
         </AppText>
       </GlassSurface>
@@ -303,9 +303,10 @@ export default function BudgetsScreen() {
 }
 
 function Stat({ label, cents }: { label: string; cents: number }) {
+  const palette = usePalette();
   return (
     <View style={styles.stat}>
-      <AppText variant="caption" color={colors.textMuted}>
+      <AppText variant="caption" color={palette.textMuted}>
         {label}
       </AppText>
       <MoneyText cents={cents} variant="subhead" />
