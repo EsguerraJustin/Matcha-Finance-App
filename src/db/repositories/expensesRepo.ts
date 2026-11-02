@@ -11,6 +11,7 @@ import { execute, queryAll, queryOne, transaction } from '../client';
 import { newId } from '../../lib/id';
 import { nowTimestamp } from '../../lib/date';
 import { notifyDbChanged } from '../../state/dbStore';
+import { relinkListForExpense, reopenListForExpense } from './groceriesRepo';
 
 export interface ExpenseRow {
   id: string;
@@ -239,11 +240,15 @@ export async function softDeleteExpense(db: DB, id: string): Promise<void> {
     nowTimestamp(),
     id,
   ]);
+  // Business rule 9: a grocery trip reopens so it can be fixed and finished again.
+  await reopenListForExpense(db, id);
   notifyDbChanged();
 }
 
 export async function restoreExpense(db: DB, id: string): Promise<void> {
   await execute(db, 'UPDATE expenses SET deleted_at = NULL, updated_at = ? WHERE id = ?;', [nowTimestamp(), id]);
+  // Undoing the delete re-completes the reopened list, when it is still free.
+  await relinkListForExpense(db, id);
   notifyDbChanged();
 }
 
@@ -255,11 +260,13 @@ export async function softDeleteExpenses(db: DB, ids: string[]): Promise<void> {
       await execute(db, 'UPDATE expenses SET deleted_at = ?, updated_at = ? WHERE id = ?;', [timestamp, timestamp, id]);
     }
   });
+  for (const id of ids) await reopenListForExpense(db, id);
   notifyDbChanged();
 }
 
 /** Undo support for the 5-second toast. */
 export async function hardDeleteExpense(db: DB, id: string): Promise<void> {
+  await reopenListForExpense(db, id);
   await execute(db, 'DELETE FROM expenses WHERE id = ?;', [id]);
   notifyDbChanged();
 }
@@ -272,6 +279,8 @@ export async function purgeExpiredDeleted(db: DB, olderThanIso: string): Promise
     [olderThanIso],
   );
   if (!rows.length) return 0;
+  // A purged grocery expense must not leave its list pointing at a dead row.
+  for (const row of rows) await reopenListForExpense(db, row.id);
   await transaction(db, async () => {
     for (const row of rows) {
       await execute(db, 'DELETE FROM expenses WHERE id = ?;', [row.id]);
