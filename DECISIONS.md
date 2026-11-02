@@ -34,3 +34,73 @@ decision the brief left open ("pick the sensible default and keep going").
 | P0-9 | The Add orb is rendered by the tab bar itself and opens a Zustand-driven sheet route (`app/add-expense-sheet.tsx`), not a tab. | The orb must always sit centred; Phase 0 ships a placeholder sheet that Phase 1 fills in. |
 | P0-10 | `maxFontSizeMultiplier` is capped at **1.3** on every text node. | Brief: support font scaling up to 130%. Past that the glass layouts stop holding. |
 | P0-11 | Default payment method after seeding is **Cash**. | The sensible first default for a student budget app. Changeable in Settings. |
+
+## Phase 1 — Expenses & History
+
+| # | Decision | Why |
+|---|---|---|
+| P1-1 | Expense amounts use a **custom numpad** (no system keyboard); digits are centavos throughout. | Brief Section 6.1: speed-first entry. |
+| P1-2 | Categories show as glass chips tinted with the category pastel; types appear underneath the chosen category. | iOS-style chip row from the brief. |
+| P1-3 | Smart defaults: last-used payment method; category/type by time of day (e.g., 11–14 → Food/Lunch). | Brief Section 6.1. |
+| P1-4 | Quick-add templates (favorites) persist in `quick_templates` table; one-tap from Home. | Brief Section 6.1. |
+| P1-5 | History uses a single `GlassSurface` wrapping a `SectionList` — rows are plain translucent fills with hairline dividers, never one `BlurView` per row. | Performance budget: ~4 visible blurs, smooth with 5,000+ rows. |
+| P1-6 | Swipe left = delete (with undo toast), swipe right = duplicate, long-press = bulk select. | Brief Section 4.3. |
+| P1-7 | Soft delete (`deleted_at`), excluded from all totals; hard purge after 30 days on boot. | Business rule 10. |
+| P1-8 | Categories/types/payment methods are user-editable (rename, recolor, reorder, archive); defaults are archivable but not deletable. | Brief Section 6.2. |
+
+## Phase 2 — Allowance & Budgets
+
+| # | Decision | Why |
+|---|---|---|
+| P2-1 | Allowance supports multiple entries per month + recurring rules (weekly/monthly/specific day) that auto-add on app open. | Brief Section 6.4. |
+| P2-2 | Budgets: weekly/monthly/custom; per-category limits; rollover toggle; auto-create next week toggle. | Brief Section 6.3. |
+| P2-3 | Safe-to-spend = `max(0, remaining) / max(1, days left)`; subtracts "set aside" savings contributions when enabled. | Brief Section 6.3, business rule 5. |
+| P2-4 | Warning at 80%, exceeded at 100%; each fires once per budget and re-arms if spend drops back. Local notification on each threshold. | Business rule 4. |
+| P2-5 | Savings goals: name, target, optional date, color; progress ring; optional "reduce safe-to-spend" toggle per goal. | Brief Section 6.8. |
+| P2-6 | Recurring rules (expenses + allowances) catch up on app open (idempotent, cap 60); "auto" creates silently, "remind" shows notification. | Brief Section 6.7. |
+
+## Phase 3 — Groceries
+
+| # | Decision | Why |
+|---|---|---|
+| P3-1 | Grocery lists have store selector (from Settings' default stores + custom), quantity + unit, est/actual price. | Brief Section 6.5. |
+| P3-2 | Price memory: normalised name + store + unit → last actual price; suggests on add. Singular/plural matched. | Brief Section 6.5. |
+| P3-3 | Live running totals: estimated total, purchased total, to-buy estimate, remaining budget after trip; pastel warning if over. | Brief Section 6.5. |
+| P3-4 | Finish trip creates **exactly one** Groceries expense (category Groceries, type = store if it matches); amount = sum of purchased items' actual (fallback est) × quantity. Unbought items carried to a new list. | Business rule 8. |
+| P3-5 | Deleting a grocery-linked expense reopens the list (status → open) instead of orphaning. Undoing the delete re-completes it only if the list is still untouched. | Business rule 9. |
+| P3-6 | Templates are just grocery lists with `is_template=1`; one tap duplicates items into a new open list. | Brief Section 6.5. |
+
+## Phase 4 — Reports & Insights
+
+| # | Decision | Why |
+|---|---|---|
+| P4-1 | Period switcher: Day / Week / Month / Custom (30 days); every chart/number derives from expenses in that range. | Brief Section 6.9. |
+| P4-2 | Charts: category donut, daily spending bars, payment-method segmented bars; all plain Views/ProgressBars — no chart library (offline). | Brief Section 6.9. |
+| P4-3 | Insight sentences from simple rules (top category, top payment method, biggest expense, grocery share, no-spend days); never shaming. | Brief Sections 6.9 + 4.5. |
+| P4-4 | CSV export via `expo-sharing` + `expo-file-system`; no network. | Brief Section 6.9. |
+
+## Phase 5 — Safety & Privacy
+
+| # | Decision | Why |
+|---|---|---|
+| P5-1 | Backup is a single JSON with all 16 tables, shared via OS share sheet. Restore runs in one transaction; on failure nothing changes. | Business rule 13; mandatory local backup (brief Section 6.12). |
+| P5-2 | App lock: optional 4–6 digit PIN (hashed in `expo-secure-store`, device-only) + biometrics (`expo-local-authentication`). The whole navigator is unmounted while locked, so the app-switcher preview contains no amounts. | Brief Section 6.12. |
+| P5-3 | The lock state initialises from the hydrated setting, and any `AppState` change away from `active` relocks; enabling the lock while already in the app does not immediately re-lock. | Cold-start privacy without a flash of content; predictable relock. |
+| P5-4 | Restore disables foreign keys for the replay (the schema is circular: `expenses.grocery_list_id` ↔ `grocery_lists.expense_id`), then runs `PRAGMA foreign_key_check` inside the same transaction. Unknown columns are ignored; known columns are validated per table. | Business rule 13 while still rejecting corrupt files. |
+| P5-5 | Erase keeps preferences, clears last-used/last-backup values, removes receipt files, and re-seeds the default taxonomies. Settings re-hydrates after both restore and erase. Restore never changes this device's app-lock setting, even if the file was made with the lock on. | The app must be immediately usable after an erase, and a file must not be able to turn a device lock off (or on without a PIN). |
+| P5-6 | Recently deleted screen: soft-deleted expenses with age, restore/purge actions; purge also deletes the receipt file. Boot purges anything older than 30 days. | Business rule 10. |
+| P5-7 | Settings: currency, week/month start, theme (Light/Night/System), glass intensity (Low/Med/High), haptics, reduce motion, reduce transparency, notification times, backup reminder interval, app lock toggle, PIN entry. | Brief Section 6.13. |
+| P5-8 | Recurring rules and savings goals (brief Sections 6.7/6.8) shipped with Phase 2 alongside allowance and budgets; Phase 5 adds the safety layer around them. | Keeps the data model in one place. |
+| P5-9 | Every scheduled notification has a stable identifier and is cancelled before re-scheduling, so repeated boots replace rather than duplicate. The backup nudge anchors on `lastBackupAt` (or first use), fires at most once per interval at 9:00 AM, and stays quiet while one is already pending. | A boot-time scheduler has to be idempotent. |
+| P5-10 | Recurring `remind` rules schedule exactly one local nudge for the newest due occurrence, record it in `last_created_on`, and advance `next_due_on`. The create form offers Auto-add / Remind me, and "Log now" records the oldest owed occurrence without pausing the rule. | Makes reminder mode reachable and idempotent; pausing on one log silently cancelled all future bills. |
+
+## Phase 6 — Polish
+
+| # | Decision | Why |
+|---|---|---|
+| P6-1 | All interactive elements have `accessibilityRole`, `accessibilityLabel`, `accessibilityState`; `ProgressRing`, `ProgressBar` expose progress to screen readers; touch targets ≥ 48pt via hitSlop. | Brief Section 12 UX checklist. |
+| P6-2 | `maxFontSizeMultiplier={1.3}` on every text node; `reduceMotion` disables springs; `reduceTransparency` (OS + in-app) switches all glass to solid fallback. | Brief Section 12 UX checklist. |
+| P6-3 | `src/db/seedPerf.ts` seeds 5,000 expenses across the current month from a `__DEV__`-only Settings row, so scrolling and reports can be checked on a low-end device. The action is unreachable in production builds. | Brief Section 12 UX checklist; `expo-sqlite` only exists inside the app, so the seed must run in-app. |
+| P6-4 | Matcha Night dark mode fully wired: theme setting toggles `AuroraBackground` (night gradient/orbs) and `GlassSurface` (dark tokens); `Settings` exposes Light/Night/System. | Brief Section 4.4. |
+| P6-5 | `app.json` config plugins cover splash, image picker (photos/camera strings, no microphone), Face ID string, secure store and local notifications. The app is phone-only (`supportsTablet: false`). | Brief Section 14 and least-permission install. |
+| P6-6 | README documents EAS and local Gradle APK/AAB builds; `android.blockedPermissions` strips INTERNET, ACCESS_NETWORK_STATE and ACCESS_WIFI_STATE. | Brief Section 14. |

@@ -2,7 +2,8 @@
  * Recurring expenses & bill reminders.
  *
  * Each rule either **auto-adds** the expense when its due date passes, or
- * **reminds** and waits for a one-tap confirm. The catch-up runs on app open.
+ * **reminds** with one local notification and waits for a manual "Log now".
+ * The catch-up runs on app open.
  */
 
 import { useCallback, useMemo, useState } from 'react';
@@ -22,11 +23,19 @@ import { categoryTint, useAppTheme } from '../src/hooks/useAppTheme';
 import { useDb, useDbQuery } from '../src/state/dbStore';
 import { showToast } from '../src/state/toastStore';
 import { useSettingsStore } from '../src/state/settingsStore';
-import { humanFrequency, type Frequency } from '../src/lib/recurring';
+import { humanFrequency, type Frequency, type RuleMode } from '../src/lib/recurring';
 import { relativeDayLabel, todayISO, type WeekStart } from '../src/lib/date';
 import { parseAmountToCents } from '../src/lib/money';
-import { notifyBillDue } from '../src/lib/notifications';
-import { createRecurringRule, deleteRecurringRule, listRecurringRules, setRuleActive } from '../src/db/repositories/recurringRepo';
+import { cancelBillReminder } from '../src/lib/notifications';
+import {
+  createRecurringRule,
+  deleteRecurringRule,
+  listRecurringRules,
+  logRecurringOccurrence,
+  setRuleActive,
+  type RecurringRuleRow,
+} from '../src/db/repositories/recurringRepo';
+import { categoryId as seedCategoryId, paymentMethodId as seedPaymentMethodId } from '../src/db/seed';
 import { listCategories, listPaymentMethods, type CategoryWithTypes, type PaymentMethod } from '../src/db/repositories/categoriesRepo';
 import { colors } from '../theme/colors';
 import { spacing } from '../theme/typography';
@@ -35,6 +44,11 @@ const FREQUENCIES: ReadonlyArray<{ value: Frequency; label: string }> = [
   { value: 'daily', label: 'Daily' },
   { value: 'weekly', label: 'Weekly' },
   { value: 'monthly', label: 'Monthly' },
+];
+
+const MODES: ReadonlyArray<{ value: RuleMode; label: string }> = [
+  { value: 'auto', label: 'Auto-add' },
+  { value: 'remind', label: 'Remind me' },
 ];
 
 export default function RecurringScreen() {
@@ -46,6 +60,7 @@ export default function RecurringScreen() {
   const [label, setLabel] = useState('');
   const [amountText, setAmountText] = useState('');
   const [frequency, setFrequency] = useState<Frequency>('weekly');
+  const [mode, setMode] = useState<RuleMode>('auto');
   const [nextDueOn, setNextDueOn] = useState(today);
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [typeId, setTypeId] = useState<string | null>(null);
@@ -89,35 +104,35 @@ export default function RecurringScreen() {
       next_due_on: nextDueOn,
       day_of_week: frequency === 'weekly' ? weekStartsOn : null,
       day_of_month: frequency === 'monthly' ? Number(nextDueOn.slice(8, 10)) : null,
-      mode: 'auto',
+      mode,
     }).then(() => {
       setLabel('');
       setAmountText('');
-      showToast({ message: `Reminder set for ${label.trim()}.`, tone: 'success' });
+      showToast({ message: `${mode === 'auto' ? 'Recurring expense' : 'Reminder'} set for ${label.trim()}.`, tone: 'success' });
     });
-  }, [amountText, categoryId, db, frequency, label, nextDueOn, paymentMethodId, typeId, weekStartsOn]);
+  }, [amountText, categoryId, db, frequency, label, mode, nextDueOn, paymentMethodId, typeId, weekStartsOn]);
 
-  const remind = useCallback(
-    async (ruleId: string, ruleLabel: string, amountCents: number, dueOn: string) => {
+  const logNow = useCallback(
+    async (rule: RecurringRuleRow) => {
       if (!db) return;
-      // Log it now for the nearest occurrence, then park the rule.
-      const { createExpense } = await import('../src/db/repositories/expensesRepo');
-      if (categoryId && paymentMethodId) {
-        await createExpense(db, {
-          amount_cents: amountCents,
-          spent_on: today,
-          category_id: categoryId,
-          type_id: typeId,
-          payment_method_id: paymentMethodId,
-          note: ruleLabel,
-          recurring_rule_id: ruleId,
-        });
+      const loggedOn = await logRecurringOccurrence(db, rule.id, today, {
+        categoryId: categoryId ?? seedCategoryId('others'),
+        paymentMethodId: paymentMethodId ?? seedPaymentMethodId('cash'),
+      });
+
+      if (!loggedOn) {
+        showToast({ message: 'Nothing is due on this one right now.', tone: 'warning' });
+        return;
       }
-      await setRuleActive(db, ruleId, false);
-      void notifyBillDue(ruleLabel, amountCents, new Date(Date.now() + 3_600_000 * 20));
-      showToast({ message: `${ruleLabel} logged for ${relativeDayLabel(today, today) === 'Today' ? 'today' : dueOn}.`, tone: 'success' });
+
+      // The in-app log answers the pending notification, so drop it.
+      void cancelBillReminder(rule.id, loggedOn);
+      showToast({
+        message: `${rule.label} logged for ${relativeDayLabel(loggedOn, today) === 'Today' ? 'today' : loggedOn}.`,
+        tone: 'success',
+      });
     },
-    [categoryId, db, paymentMethodId, today, typeId],
+    [categoryId, db, paymentMethodId, today],
   );
 
   return (
@@ -153,7 +168,7 @@ export default function RecurringScreen() {
                 variant="secondary"
                 size="small"
                 icon={<Bell size={15} strokeWidth={1.75} color={colors.matcha700} />}
-                onPress={() => void remind(rule.id, rule.label, rule.amount_cents, rule.next_due_on)}
+                onPress={() => void logNow(rule)}
                 style={styles.action}
               />
               <Pressable
@@ -175,6 +190,10 @@ export default function RecurringScreen() {
         <GlassInput value={label} onChangeText={setLabel} placeholder="Phone load" label="Label" />
         <GlassInput value={amountText} onChangeText={setAmountText} placeholder="₱100" keyboardType="decimal-pad" label="Amount" />
         <GlassSegmented options={FREQUENCIES} value={frequency} onChange={setFrequency} />
+        <AppText variant="footnote" color={colors.textMuted}>
+          When it is due
+        </AppText>
+        <GlassSegmented options={MODES} value={mode} onChange={setMode} />
         <GlassInput value={nextDueOn} onChangeText={setNextDueOn} placeholder="YYYY-MM-DD" label="Next due" autoCapitalize="none" />
 
         <AppText variant="footnote" color={colors.textMuted}>
@@ -211,7 +230,7 @@ export default function RecurringScreen() {
         />
 
         <AppText variant="caption" color={colors.textMuted}>
-          Anything missed while the app was closed is caught up when it next opens.
+          Auto-add posts the expense when it comes due. Remind me sends one notification and waits for you to tap Log now. Anything missed while the app was closed is caught up on the next open.
         </AppText>
       </GlassSurface>
 

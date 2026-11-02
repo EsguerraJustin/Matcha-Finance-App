@@ -14,6 +14,44 @@ import { formatMoney } from './money';
 
 const CHANNEL_ID = 'matcha-wallet';
 
+/**
+ * Stable identifiers. Scheduling with the same identifier replaces the pending
+ * request instead of stacking a second copy, so a boot that runs twice can
+ * never produce two "day check-in" reminders.
+ */
+const NOTIFICATION_IDS = {
+  daily: 'matcha.daily-reminder',
+  backup: 'matcha.backup-reminder',
+} as const;
+
+/** Identifiers are opaque keys; keep them free of user text and whitespace. */
+function safeId(value: string): string {
+  return value.replace(/[^a-zA-Z0-9._:-]/g, '-');
+}
+
+async function scheduleReplacing(
+  identifier: string,
+  content: Notifications.NotificationContentInput,
+  trigger: Notifications.NotificationTriggerInput,
+): Promise<string> {
+  try {
+    await Notifications.cancelScheduledNotificationAsync(identifier);
+  } catch {
+    // Nothing pending under this id — that is the normal first-run case.
+  }
+  return Notifications.scheduleNotificationAsync({ identifier, content, trigger });
+}
+
+/** True while a backup nudge is still waiting to fire. */
+export async function hasPendingBackupReminder(): Promise<boolean> {
+  try {
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    return scheduled.some((request) => request.identifier === NOTIFICATION_IDS.backup);
+  } catch {
+    return false;
+  }
+}
+
 /** Quiet pastel banner, even when the app is in the foreground. */
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -80,34 +118,40 @@ export async function scheduleDailyReminder(time = '20:00'): Promise<string | nu
   const hour = Math.min(23, Math.max(0, Number(hourPart) || 0));
   const minute = Math.min(59, Math.max(0, Number(minutePart) || 0));
 
-  return Notifications.scheduleNotificationAsync({
-    content: {
+  return scheduleReplacing(
+    NOTIFICATION_IDS.daily,
+    {
       title: 'Day check-in',
       body: 'Two minutes to log anything you spent today.',
       sound: false,
     },
-    trigger: dailyAt(hour, minute),
-  });
+    dailyAt(hour, minute),
+  );
 }
 
-/** Every two weeks, nudge the user to back up (brief Section 6.12). */
-export async function scheduleBackupReminder(days = 14, from = new Date()): Promise<string | null> {
+/**
+ * One nudge to back up (brief Section 6.12), default two weeks after the last
+ * backup. `dueAt` is when it should surface; the boot routine passes the next
+ * 9:00 AM so a due reminder does not interrupt an open session.
+ */
+export async function scheduleBackupReminder(dueAt: Date): Promise<string | null> {
   if (!(await canNotify())) return null;
   await ensureChannel();
 
-  const triggerDate = new Date(from.getTime() + days * 86_400_000);
-  return Notifications.scheduleNotificationAsync({
-    content: {
+  return scheduleReplacing(
+    NOTIFICATION_IDS.backup,
+    {
       title: 'Quick backup?',
       body: 'Two weeks since your last one. A tap keeps your data safe.',
       sound: false,
     },
-    trigger: onceAt(triggerDate),
-  });
+    onceAt(dueAt),
+  );
 }
 
 /** 80 % / 100 % budget alerts — fired once per threshold per budget. */
 export async function notifyBudgetThreshold(params: {
+  budgetId: string;
   budgetName: string;
   threshold: 'warning' | 'exceeded';
   usage: number;
@@ -119,8 +163,9 @@ export async function notifyBudgetThreshold(params: {
   const percent = Math.round(params.usage * 100);
   const spent = formatMoney(params.spentCents, { compactZeroDecimals: true });
 
-  return Notifications.scheduleNotificationAsync({
-    content: {
+  return scheduleReplacing(
+    `matcha.budget.${safeId(params.budgetId)}.${params.threshold}`,
+    {
       title:
         params.threshold === 'exceeded'
           ? `${params.budgetName} is over`
@@ -131,23 +176,38 @@ export async function notifyBudgetThreshold(params: {
           : `${spent} spent. Easy does it.`,
       sound: false,
     },
-    trigger: onceAt(new Date(Date.now() + 1_000)),
-  });
+    onceAt(new Date(Date.now() + 1_000)),
+  );
 }
 
-/** A reminder-mode recurring item wants a tap tomorrow morning. */
-export async function notifyBillDue(label: string, amountCents: number, when: Date): Promise<string | null> {
+/** A reminder-mode recurring item wants a tap. */
+export async function notifyBillDue(
+  label: string,
+  amountCents: number,
+  when: Date,
+  identifier?: string,
+): Promise<string | null> {
   if (!(await canNotify())) return null;
   await ensureChannel();
 
-  return Notifications.scheduleNotificationAsync({
-    content: {
+  return scheduleReplacing(
+    identifier ?? `matcha.bill.${safeId(label)}.${when.getTime()}`,
+    {
       title: label,
       body: `${formatMoney(amountCents)} is due. One tap to log it.`,
       sound: false,
     },
-    trigger: onceAt(when),
-  });
+    onceAt(when),
+  );
+}
+
+/** Drops a pending bill nudge once the bill has been logged by hand. */
+export async function cancelBillReminder(ruleId: string, dueOn: string): Promise<void> {
+  try {
+    await Notifications.cancelScheduledNotificationAsync(`matcha.bill.${ruleId}.${dueOn}`);
+  } catch {
+    // It may already have fired or never have been scheduled.
+  }
 }
 
 export async function cancelAll(): Promise<void> {

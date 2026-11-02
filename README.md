@@ -16,12 +16,12 @@ that feels like a native iPhone app.
 | Phase | Contents | State |
 |---|---|---|
 | **0 — Foundation** | Project scaffold, design tokens, bundled fonts, SQLite + migration runner, seed data, money/date helpers with unit tests, glass primitives, floating tab bar shell | Done |
-| 1 — Expenses & History | Add-expense sheet, History v2, category manager | Next |
-| 2 — Allowance & Budgets | Budgets, safe-to-spend, notifications, Home | Planned |
-| 3 — Groceries | Lists, price memory, finish-trip | Planned |
-| 4 — Reports & Insights | Charts, insight sentences, CSV/PDF export | Planned |
-| 5 — Recurring, Goals, Safety | Recurring rules, savings goals, backup/restore, app lock | Planned |
-| 6 — Polish | Accessibility pass, Matcha Night, performance, APK/AAB | Planned |
+| **1 — Expenses & History** | Add-expense sheet, History v2, category manager | Done |
+| **2 — Allowance & Budgets** | Budgets, safe-to-spend, notifications, Home | Done |
+| **3 — Groceries** | Lists, templates, store selector, price memory, live totals, finish-trip flow | Done |
+| **4 — Reports & Insights** | Period switcher, donut/daily charts, payment split, insight sentences, CSV export | Done |
+| **5 — Recurring, Goals, Safety** | Recurring rules, savings goals, backup/restore, app lock, recently deleted | Done |
+| **6 — Polish** | Accessibility labels/roles, 130% font scaling, reduce motion/transparency, Matcha Night, 5k-expense perf seed, APK/AAB docs | Done |
 
 ---
 
@@ -39,9 +39,13 @@ npm run ios        # macOS only
 ## Tests & types
 
 ```bash
-npm test           # Jest — money, dates, budget math (45 tests)
+npm test           # Jest — money, dates, budget math, groceries, reports, backup
 npm run typecheck  # tsc --noEmit
 ```
+
+Performance: in a development build, **Settings → Developer → Seed 5,000 expenses**
+adds a month of test data so scrolling and reports can be checked on a slow
+device. The action is compiled out of production builds (`__DEV__`).
 
 ## Build an APK
 
@@ -72,9 +76,14 @@ cd android && ./gradlew assembleRelease
 
 ```
 app/                      Expo Router routes
-  _layout.tsx             fonts → migrations → seed → settings → navigator
+  _layout.tsx             fonts → migrations → seed → settings → navigator (+ app lock)
   (tabs)/                 Home · History · Groceries · Reports
   add-expense-sheet.tsx   Add/Edit expense sheet host
+  grocery-list.tsx        Grocery list detail + finish-trip flow
+  recently-deleted.tsx    Soft-deleted expenses (30-day grace)
+  settings/
+    index.tsx             All settings: currency, cycles, theme, lock, reminders
+    backup.tsx            Export/restore/erase backup
 theme/                    design tokens (the exact brief values)
   colors.ts               matcha palette, category pastels, Matcha Night
   glass.ts                glassmorphism tokens + solid fallback resolution
@@ -86,14 +95,19 @@ src/
     repositories/         one repository file per table
     seed.ts               first-launch defaults
     settings.ts           typed settings contract
-  lib/                    money.ts · date.ts · id.ts · haptics.ts  (pure, tested)
+    seedPerf.ts           dev-only 5,000-expense performance seed
+  lib/
+    money.ts · date.ts · id.ts · haptics.ts  (pure, tested)
+    expenses.ts · budgets.ts · groceries.ts · recurring.ts · receipts.ts · notifications.ts · appLock.ts · backup.ts · backupFormat.ts · reports.ts
   state/                  Zustand UI stores only — data lives in SQLite
   hooks/                  useAppTheme (accessibility + glass resolution)
   components/
+    AppLockScreen.tsx     PIN + biometric unlock screen (rendered above the app)
     glass/                AuroraBackground, GlassCard, GlassSheet, GlassTabBar,
                           GlassButton, GlassSegmented, GlassChip, GlassSurface
     ui/                   AppText, ScreenScaffold, LargeTitleHeader, EmptyState
-__tests__/                Jest unit tests
+    expense/              AmountNumpad, ChipRow, FilterSheet, BulkActionBar, ExpenseRow
+__tests__/                Jest unit tests (money, date, budget, groceries, reports, recurring, backup)
 ```
 
 ### Where the rules live

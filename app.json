@@ -14,7 +14,7 @@
       "backgroundColor": "#F5FAF0"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.matchawallet.app"
     },
     "android": {
@@ -40,6 +40,7 @@
     "plugins": [
       "expo-router",
       "expo-sqlite",
+      "expo-secure-store",
       [
         "expo-splash-screen",
         {
@@ -47,6 +48,26 @@
           "imageWidth": 180,
           "resizeMode": "contain",
           "backgroundColor": "#F5FAF0"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Matcha Wallet reads only the receipt photo you choose. It never leaves your phone.",
+          "cameraPermission": "Matcha Wallet uses the camera only to photograph a receipt.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Use Face ID to unlock Matcha Wallet."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#6E9E5A"
         }
       ]
     ],

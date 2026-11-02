@@ -1,13 +1,22 @@
 /**
  * More — the hub for everything outside the four tabs.
  *
- * Settings, Budgets, Allowance, Recurring, Savings goals, Categories, Backup
- * and Recently deleted all hang off this sheet (brief Section 7). Only the
- * destinations that exist so far are shown; the rest land with their phases.
+ * Settings, Budgets, Allowance, Recurring, Savings goals, Categories,
+ * Backup and Recently deleted all hang off this sheet (brief Section 7).
  */
 
 import { Pressable, StyleSheet, View } from 'react-native';
-import { ChevronRight, Layers, PiggyBank, Repeat2, Target, Wallet } from 'lucide-react-native';
+import {
+  ChevronRight,
+  Layers,
+  PiggyBank,
+  Repeat2,
+  Settings,
+  ShieldCheck,
+  Target,
+  Trash2,
+  Wallet,
+} from 'lucide-react-native';
 import { router } from 'expo-router';
 
 import { GlassSurface } from '../src/components/glass/GlassSurface';
@@ -67,6 +76,30 @@ const MENU: MenuItem[] = [
     tint: '#E3DAF5',
     onPress: () => router.push('/settings/categories'),
   },
+  {
+    key: 'backup',
+    label: 'Backup',
+    hint: 'Export, restore and erase',
+    icon: ShieldCheck,
+    tint: '#CDEFE3',
+    onPress: () => router.push('/settings/backup'),
+  },
+  {
+    key: 'deleted',
+    label: 'Recently deleted',
+    hint: 'Recover a mistaken swipe',
+    icon: Trash2,
+    tint: '#F8CFCA',
+    onPress: () => router.push('/recently-deleted'),
+  },
+  {
+    key: 'settings',
+    label: 'Settings',
+    hint: 'Theme, week start, reminders, app lock',
+    icon: Settings,
+    tint: '#E9E4D8',
+    onPress: () => router.push('/settings'),
+  },
 ];
 
 export default function MoreScreen() {
@@ -81,7 +114,7 @@ export default function MoreScreen() {
       </GlassSurface>
 
       <AppText variant="footnote" color={colors.textMuted} center>
-        Backup, app lock and Settings arrive with Phase 5.
+        Matcha Wallet is offline by design. Nothing here leaves your phone.
       </AppText>
     </ScreenScaffold>
   );

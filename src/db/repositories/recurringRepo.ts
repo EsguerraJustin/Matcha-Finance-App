@@ -7,7 +7,7 @@
  */
 
 import type { DB } from '../client';
-import { execute, queryAll, transaction } from '../client';
+import { execute, queryAll, queryOne, transaction } from '../client';
 import { newId } from '../../lib/id';
 import { nowTimestamp } from '../../lib/date';
 import { notifyDbChanged } from '../../state/dbStore';
@@ -21,6 +21,7 @@ import {
 } from '../../lib/recurring';
 import { createExpense } from './expensesRepo';
 import { createAllowance } from './allowancesRepo';
+import { notifyBillDue } from '../../lib/notifications';
 
 export interface RecurringRuleRow {
   id: string;
@@ -142,21 +143,69 @@ export async function setRuleActive(db: DB, id: string, active: boolean): Promis
   notifyDbChanged();
 }
 
+/**
+ * Manual "Log now": records the oldest owed occurrence and advances the rule.
+ * Unlike the old handler it does not pause the rule — logging one bill should
+ * not quietly cancel next month's.
+ *
+ * Returns the date that was logged, or `null` when nothing is owed.
+ */
+export async function logRecurringOccurrence(
+  db: DB,
+  ruleId: string,
+  today: string,
+  options: { categoryId?: string | null; paymentMethodId?: string | null } = {},
+): Promise<string | null> {
+  const rule = await queryOne<RecurringRuleRow>(db, 'SELECT * FROM recurring_rules WHERE id = ?;', [ruleId]);
+  if (!rule) return null;
+
+  const due = dueOccurrences(rule, today);
+  const dueOn = due[0];
+  if (!dueOn) return null;
+
+  const categoryId = rule.category_id ?? options.categoryId ?? null;
+  const paymentMethodId = rule.payment_method_id ?? options.paymentMethodId ?? null;
+  if (!categoryId || !paymentMethodId) return null;
+
+  await transaction(db, async () => {
+    await createExpense(db, {
+      amount_cents: rule.amount_cents,
+      spent_on: dueOn,
+      category_id: categoryId,
+      type_id: rule.type_id,
+      payment_method_id: paymentMethodId,
+      note: rule.note ?? rule.label,
+      recurring_rule_id: rule.id,
+    });
+    await execute(db, 'UPDATE recurring_rules SET next_due_on = ?, last_created_on = ? WHERE id = ?;', [
+      advanceNextDue(rule, today),
+      dueOn,
+      rule.id,
+    ]);
+  });
+
+  notifyDbChanged();
+  return dueOn;
+}
+
 /* ------------------------------------------------------------------ */
 /* Catch-up runner                                                     */
 /* ------------------------------------------------------------------ */
 
 export interface CatchUpResult {
   created: number;
+  reminded: number;
   rulesProcessed: number;
 }
 
 /**
- * Materialises every occurrence that is due, capped at
+ * Materialises every due occurrence for `mode = 'auto'` rules, capped at
  * `MAX_CATCH_UP_OCCURRENCES` per rule (business rule 11).
  *
- * `mode = 'remind'` rules are never auto-created — they only raise a local
- * notification and wait for the user to confirm.
+ * `mode = 'remind'` rules are never auto-created. Instead they raise one local
+ * notification for the newest due occurrence and wait for the user. The
+ * `last_created_on` column doubles as "last reminded on" for those rules, which
+ * is what keeps a second boot on the same day from nagging twice.
  */
 export async function runCatchUp(
   db: DB,
@@ -166,12 +215,38 @@ export async function runCatchUp(
   const rules = await listRecurringRules(db);
 
   let created = 0;
+  let reminded = 0;
   let rulesProcessed = 0;
 
   for (const rule of rules) {
-    if (rule.kind !== 'expense' || rule.mode !== 'auto') continue;
+    if (rule.kind !== 'expense') continue;
     const due = dueOccurrences(rule, today);
     if (!due.length) continue;
+
+    if (rule.mode === 'remind') {
+      // One nudge for the newest occurrence, never a flood of back-dated ones.
+      const pending = due.filter((dueOn) => !rule.last_created_on || dueOn > rule.last_created_on);
+      if (!pending.length) continue;
+
+      rulesProcessed += 1;
+      const latest = pending[pending.length - 1]!;
+      const scheduled = await notifyBillDue(
+        rule.label,
+        rule.amount_cents,
+        nextMorning(),
+        `matcha.bill.${rule.id}.${latest}`,
+      );
+
+      // Advance even when notifications are switched off: the occurrence is
+      // past, and leaving it pending would make the rule look permanently due.
+      await execute(db, 'UPDATE recurring_rules SET next_due_on = ?, last_created_on = ? WHERE id = ?;', [
+        advanceNextDue(rule, today),
+        latest,
+        rule.id,
+      ]);
+      if (scheduled) reminded += 1;
+      continue;
+    }
 
     rulesProcessed += 1;
 
@@ -207,7 +282,15 @@ export async function runCatchUp(
   }
 
   if (rulesProcessed) notifyDbChanged();
-  return { created, rulesProcessed };
+  return { created, reminded, rulesProcessed };
+}
+
+/** 9:00 AM tomorrow in device-local time — a due bill never nags mid-session. */
+function nextMorning(now = new Date()): Date {
+  const when = new Date(now);
+  when.setDate(when.getDate() + 1);
+  when.setHours(9, 0, 0, 0);
+  return when;
 }
 
 /** Same contract for recurring allowance (Section 6.4). */

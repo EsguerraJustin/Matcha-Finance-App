@@ -12,6 +12,7 @@ import { newId } from '../../lib/id';
 import { nowTimestamp } from '../../lib/date';
 import { notifyDbChanged } from '../../state/dbStore';
 import { relinkListForExpense, reopenListForExpense } from './groceriesRepo';
+import { deleteReceipt } from '../../lib/receipts';
 
 export interface ExpenseRow {
   id: string;
@@ -264,23 +265,29 @@ export async function softDeleteExpenses(db: DB, ids: string[]): Promise<void> {
   notifyDbChanged();
 }
 
-/** Undo support for the 5-second toast. */
+/** Undo support for the 5-second toast, and "delete forever". */
 export async function hardDeleteExpense(db: DB, id: string): Promise<void> {
+  const row = await queryOne<{ receipt_path: string | null }>(db, 'SELECT receipt_path FROM expenses WHERE id = ?;', [id]);
   await reopenListForExpense(db, id);
   await execute(db, 'DELETE FROM expenses WHERE id = ?;', [id]);
+  // Business rule 10: a purged expense takes its receipt photo with it.
+  deleteReceipt(row?.receipt_path ?? null);
   notifyDbChanged();
 }
 
 /** Business rule 10: purge soft-deleted rows after 30 days. */
 export async function purgeExpiredDeleted(db: DB, olderThanIso: string): Promise<number> {
-  const rows = await queryAll<{ id: string }>(
+  const rows = await queryAll<{ id: string; receipt_path: string | null }>(
     db,
-    'SELECT id FROM expenses WHERE deleted_at IS NOT NULL AND deleted_at < ?;',
+    'SELECT id, receipt_path FROM expenses WHERE deleted_at IS NOT NULL AND deleted_at < ?;',
     [olderThanIso],
   );
   if (!rows.length) return 0;
   // A purged grocery expense must not leave its list pointing at a dead row.
-  for (const row of rows) await reopenListForExpense(db, row.id);
+  for (const row of rows) {
+    await reopenListForExpense(db, row.id);
+    deleteReceipt(row.receipt_path);
+  }
   await transaction(db, async () => {
     for (const row of rows) {
       await execute(db, 'DELETE FROM expenses WHERE id = ?;', [row.id]);

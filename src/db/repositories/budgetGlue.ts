@@ -34,6 +34,7 @@ export async function evaluateBudgetThresholds(db: DB, today: string): Promise<v
 
     if (fire) {
       await notifyBudgetThreshold({
+        budgetId: budget.id,
         budgetName: budget.name,
         threshold: totals.threshold === 'exceeded' ? 'exceeded' : 'warning',
         usage: totals.usage,
@@ -55,6 +56,7 @@ export async function refreshBudgetArm(budget: BudgetWithTotals): Promise<void> 
 
   if (fire) {
     await notifyBudgetThreshold({
+      budgetId: budget.id,
       budgetName: budget.name,
       threshold: totals.threshold === 'exceeded' ? 'exceeded' : 'warning',
       usage: totals.usage,
