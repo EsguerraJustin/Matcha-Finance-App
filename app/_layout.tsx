@@ -15,12 +15,12 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { AppState, StyleSheet, View } from 'react-native';
+import { AppState, Platform, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
-import { Stack } from 'expo-router';
+import { Stack, ThemeProvider, DefaultTheme, DarkTheme } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 
@@ -49,6 +49,13 @@ export default function RootLayout() {
   // it means the navigator never flashes before the lock screen on a cold
   // start with the lock enabled.
   const [unlocked, setUnlocked] = useState<boolean | null>(null);
+
+  // React Navigation paints its default light theme (rgb(242,242,242)) behind
+  // every screen, which would hide the AuroraBackground on both platforms.
+  // Transparent containers let the aurora show through; screens provide their
+  // own glass fills.
+  const base = isDark ? DarkTheme : DefaultTheme;
+  const navTheme = { ...base, colors: { ...base.colors, background: 'transparent', card: 'transparent' } };
 
   const lockReady = ready && unlocked !== null;
   const needsLock = lockReady && appLockEnabled && !unlocked;
@@ -99,42 +106,48 @@ export default function RootLayout() {
 
   if (needsLock) {
     return (
-      <GestureHandlerRootView style={styles.root}>
-        <SafeAreaProvider>
-          <View style={styles.root}>
-            <StatusBar style={isDark ? 'light' : 'dark'} />
-            <AppLockScreen onUnlock={() => setUnlocked(true)} />
-          </View>
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
+      <ThemeProvider value={navTheme}>
+        <GestureHandlerRootView style={styles.root}>
+          <SafeAreaProvider>
+            <View style={styles.root}>
+              <StatusBar style={isDark ? 'light' : 'dark'} />
+              <AppLockScreen onUnlock={() => setUnlocked(true)} />
+            </View>
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
+      </ThemeProvider>
     );
   }
 
   return (
-    <GestureHandlerRootView style={styles.root}>
-      <SafeAreaProvider>
-        <View style={styles.root}>
-          <AuroraBackground />
-          <StatusBar style={isDark ? 'light' : 'dark'} />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: 'transparent' },
-              animation: 'slide_from_right',
-            }}
-          />
-        </View>
+    <ThemeProvider value={navTheme}>
+      <GestureHandlerRootView style={styles.root}>
+        <SafeAreaProvider>
+          <View style={[styles.root, { backgroundColor: isDark ? darkPalette.background : lightPalette.background }]}>
+            <AuroraBackground />
+            <StatusBar style={isDark ? 'light' : 'dark'} />
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: 'transparent' },
+                // On web the slide animation never detaches/hides the outgoing
+                // screen, so both stack visibly; Android keeps fade-free slides.
+                animation: Platform.OS === 'web' ? 'none' : 'slide_from_right',
+              }}
+            />
+          </View>
 
-        <Toast
-          visible={toast.visible}
-          message={toast.message}
-          actionLabel={toast.actionLabel}
-          onAction={toast.onAction}
-          tone={toast.tone}
-          onHide={hideToast}
-        />
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+          <Toast
+            visible={toast.visible}
+            message={toast.message}
+            actionLabel={toast.actionLabel}
+            onAction={toast.onAction}
+            tone={toast.tone}
+            onHide={hideToast}
+          />
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </ThemeProvider>
   );
 }
 

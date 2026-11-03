@@ -8,9 +8,12 @@
 ## Status
 
 - **Phases 0–6**: committed and stable. Phase 6 landed as `2ab8c7f`; the
-  post-commit Matcha Night audit (this file's T1–T8) is complete.
+  post-commit Matcha Night audit landed as `7affc43`; the web-export visual
+  pass (invisible-heading fix, navigator theme, per-screen backdrop) as the
+  latest commit.
 - **Verification**: TypeScript 0 errors · Jest 157 passing · Android bundle
-  exports (`npx expo export --platform android --no-bytecode`).
+  exports (`npx expo export --platform android --no-bytecode`) · web export
+  boots and renders all screens in Light and Matcha Night (Playwright).
 - T1–T8 all done — including the icon/stroke audit (every remaining
   hard-coded `colors.*` is either resolved through `resolveTone()` or sits on
   a permanently-light surface such as a primary button or pastel chip) and

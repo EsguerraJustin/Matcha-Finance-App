@@ -12,7 +12,10 @@ import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { LargeTitleHeader, useCollapsingTitle } from './LargeTitleHeader';
+import { BackdropLayers } from '../glass/AuroraBackground';
 import { TAB_BAR_INSET } from '../glass/GlassTabBar';
+import { darkPalette, lightPalette } from '../../../theme/colors';
+import { useAppTheme } from '../../hooks/useAppTheme';
 import { spacing } from '../../../theme/typography';
 
 const AnimatedScrollView = Animated.ScrollView;
@@ -39,13 +42,17 @@ function ScreenScaffoldImpl({
 }: ScreenScaffoldProps) {
   const insets = useSafeAreaInsets();
   const { scrollY, scrollProps } = useCollapsingTitle();
+  const { palette } = useAppTheme();
 
   const content = (
     <View style={[styles.content, contentStyle]}>{children}</View>
   );
 
   return (
-    <View style={styles.root} testID={testID}>
+    // Opaque backdrop so this screen covers the previous (still-mounted) one,
+    // with the aurora painted beneath the content.
+    <View style={[styles.root, { backgroundColor: palette.isDark ? darkPalette.background : lightPalette.background }]} testID={testID}>
+      <BackdropLayers />
       <View style={{ height: insets.top }} />
       <LargeTitleHeader title={title} subtitle={subtitle} accessory={accessory} scrollY={scrollY} />
 

@@ -38,6 +38,10 @@ yarn-error.*
 # agent tooling directories (not part of the app)
 .claude/
 .kilo/
+.playwright-mcp/
+
+# web export (visual verification harness only; Android is the target)
+dist-web/
 
 # typescript
 *.tsbuildinfo

@@ -2,7 +2,10 @@
  * `<AuroraBackground />`
  *
  * One fixed, full-screen, non-scrolling layer that sits BEHIND every glass
- * surface so the blur has colour to frost. Rendered exactly once, at the root.
+ * surface so the blur has colour to frost. Rendered once at the root, and
+ * again (via `<BackdropLayers />`) inside every `ScreenScaffold` so each
+ * screen has an opaque, self-coloured background — on web, inactive screens
+ * stay mounted behind the active one.
  *
  * Layer 1 of the stack from brief Section 4.2:
  *   1. AuroraBackground
@@ -50,7 +53,13 @@ function OrbsLayer({ orbs, height }: { orbs: readonly Orb[]; height: number }) {
   );
 }
 
-function AuroraBackgroundImpl() {
+/**
+ * Backdrop that paints the gradient + orbs. Exported so each screen can
+ * render its own copy: on web, inactive tab scenes stay mounted behind the
+ * active one (they only hide behind an *opaque* screen background), so a
+ * single root layer is not enough.
+ */
+export function BackdropLayers() {
   const { width, height } = useWindowDimensions();
   const { isDark } = useAppTheme();
 
@@ -62,7 +71,7 @@ function AuroraBackgroundImpl() {
   const scale = width / 390;
 
   return (
-    <View pointerEvents="none" style={styles.root}>
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       <LinearGradient
         colors={gradient}
         start={{ x: 0, y: 0 }}
@@ -73,6 +82,14 @@ function AuroraBackgroundImpl() {
         orbs={orbs.map((orb) => ({ ...orb, x: orb.x * scale }))}
         height={height * 1.4}
       />
+    </View>
+  );
+}
+
+function AuroraBackgroundImpl() {
+  return (
+    <View pointerEvents="none" style={styles.root}>
+      <BackdropLayers />
     </View>
   );
 }
