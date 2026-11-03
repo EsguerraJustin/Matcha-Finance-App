@@ -9,8 +9,8 @@
 
 - **Phases 0–6**: committed and stable. Phase 6 landed as `2ab8c7f`; the
   post-commit Matcha Night audit landed as `7affc43`; the web-export visual
-  pass (invisible-heading fix, navigator theme, per-screen backdrop) as the
-  latest commit.
+  pass (invisible-heading fix, navigator theme, per-screen backdrop) as
+  `8d321a9`.
 - **Verification**: TypeScript 0 errors · Jest 157 passing · Android bundle
   exports (`npx expo export --platform android --no-bytecode`) · web export
   boots and renders all screens in Light and Matcha Night (Playwright).
@@ -18,11 +18,13 @@
   hard-coded `colors.*` is either resolved through `resolveTone()` or sits on
   a permanently-light surface such as a primary button or pastel chip) and
   the static `StyleSheet` divider sweep (now inline `palette.divider`).
-- `Palette` gained `warningBg`; see DECISIONS `P6-11`…`P6-14`.
+- `Palette` gained `warningBg`; see DECISIONS `P6-11`…`P6-14`. The visual
+  pass added `P6-15` (transparent navigator theme + per-screen backdrop),
+  `P6-16` (web harness `.wasm`/COOP/COEP) and `P6-17` (expo-updates disabled).
 
 ---
 
-## T1  Fix dark-mode TypeScript errors *(blocking)*
+## T1  Fix dark-mode TypeScript errors *(done)*
 
 > GUIDE §4.5, §5
 
@@ -53,12 +55,12 @@ no binding in scope. Three error categories:
 
 ```bash
 npx tsc --noEmit    # must be 0 errors
-npx jest            # must stay at 156+ passing
+npx jest            # must stay at 157 passing
 ```
 
 ---
 
-## T2  Remaining icon/colour dark-mode tokens
+## T2  Remaining icon/colour dark-mode tokens *(done)*
 
 > GUIDE §4.5
 
@@ -87,7 +89,7 @@ dark-on-dark or invisible text/icons on every screen.
 
 ---
 
-## T3  Static `StyleSheet` colours
+## T3  Static `StyleSheet` colours *(done)*
 
 > GUIDE §4.5
 
@@ -104,7 +106,7 @@ Audit at least: `borderBottomColor`, `borderTopColor`, `backgroundColor` in
 
 ---
 
-## T4  `AppLockScreen` dark-mode polish
+## T4  `AppLockScreen` dark-mode polish *(done)*
 
 > GUIDE §4.5, §4.6
 
@@ -119,7 +121,7 @@ background, and pressed states. Wire them through `palette`:
 
 ---
 
-## T5  Remove unused `onboardingComplete` setting *(done in-progress, verify)*
+## T5  Remove unused `onboardingComplete` setting *(done — verified)*
 
 > GUIDE §4.9
 
@@ -137,22 +139,22 @@ restore cleanly, but remove it from the live settings contract.
 
 ---
 
-## T6  Run full verification and commit Phase 6
+## T6  Run full verification and commit Phase 6 *(done)*
 
 > GUIDE §5
 
 Once T1–T5 are done:
 
 1. `npx tsc --noEmit` → 0 errors
-2. `npx jest` → 156+ tests pass
+2. `npx jest` → 157 tests pass
 3. `npx expo export --platform android --no-bytecode` → bundles
-4. `git add -A && git reset -- .claude`
+4. `git add -A && git reset -- .claude .kilo dist-web .playwright-mcp`  # tool/test outputs, never in the app commit
 5. `git commit -m "phase-6: polish — dark mode, accessibility, hitSlop, keyboard"`
 6. Confirm `git log --oneline` shows 7 clean phase commits.
 
 ---
 
-## T7  Update README.md and DECISIONS.md
+## T7  Update README.md and DECISIONS.md *(done)*
 
 > GUIDE §8
 
@@ -175,7 +177,7 @@ After committing Phase 6:
 
 ---
 
-## T8  Post-commit nice-to-haves *(not blocking Phase 6)*
+## T8  Post-commit nice-to-haves *(all done)*
 
 These are improvements worth doing after Phase 6 is committed. Each is small
 and self-contained:

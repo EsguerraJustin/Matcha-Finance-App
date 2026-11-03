@@ -49,7 +49,8 @@
 
 - `npx expo install` fails in this environment (`EALLOWSCRIPTS`); install with `npm install <pkg>@<version>` using the version from `node_modules/expo/bundledNativeModules.json`.
 - Git is local-only, user `Matcha Wallet Dev <dev@matchawallet.local>`.
-- `.claude/` is untracked; `android/`, `dist/`, `.expo/` are gitignored.
+- `.claude/`, `.kilo/`, `.playwright-mcp/`, `dist-web/`, `android/`, `dist/`, `.expo/` are gitignored.
+- `dist-web/` is a dev-only web export for visual verification; it is **not** a supported distribution (Android only).
 - Jest prints a harmless "worker process has failed to exit gracefully" warning after passing — ignore it.
 
 ---
@@ -115,13 +116,14 @@ src/
     useAppTheme.ts           Accessibility prefs + glass resolution + palette
   components/
     AppLockScreen.tsx        PIN + biometric unlock overlay
-    glass/                   AuroraBackground, GlassCard, GlassSheet, GlassTabBar,
-                             GlassButton, GlassSegmented, GlassChip, GlassSurface
-    ui/                      AppText, MoneyText, ScreenScaffold, LargeTitleHeader,
+    glass/                   AuroraBackground (root + `BackdropLayers` per screen), GlassCard, GlassSheet,
+                             GlassTabBar, GlassButton, GlassSegmented, GlassChip, GlassSurface
+    ui/                      AppText, MoneyText, ScreenScaffold (opaque per-screen backdrop), LargeTitleHeader,
                              EmptyState, GlassInput, ProgressBar, ProgressRing, Toast
     expense/                 AmountNumpad, ChipRow, FilterSheet, BulkActionBar, ExpenseRow
 
 __tests__/                   Jest unit tests
+metro.config.js             .wasm registered as an asset so the web export bundles expo-sqlite's worker (dev harness only)
 ```
 
 ---
@@ -150,15 +152,17 @@ __tests__/                   Jest unit tests
 ### 4.4  Text rendering
 
 - **No raw RN `<Text>`.** Use `<AppText>` or `<MoneyText>` — they set `maxFontSizeMultiplier={1.3}` and resolve palette colour.
-- Exception: glass primitives (`GlassButton`, `GlassChip`, `GlassSegmented`, `GlassTabBar`) use RN `Text` internally because they are leaf components with their own sizing logic.
+- Exception: glass primitives (`GlassButton`, `GlassChip`, `GlassSegmented`, `GlassTabBar`) use RN `Text` internally because they are leaf components with their own sizing logic — all of them still cap at `maxFontSizeMultiplier={1.3}`.
 
 ### 4.5  Dark mode
 
 - `theme/colors.ts` exports `lightPalette` and `darkPalette` (type `Palette`).
+- `Palette` carries the semantic fields (`text`, `textMuted`, `emphasis`, `divider`, `primary`, `onPrimary`, `dangerText`, `dangerBg`, `successText`, `warningText`, `warningBg`) so banners and badges stay legible in Matcha Night. `warningBg` is a light amber pastel in light mode and a 15 % amber overlay on dark.
 - `resolveTone(color, palette)` maps a static light-theme token (e.g. `colors.matcha700`) to the equivalent semantic colour for the active palette.
 - `<AppText>` calls `resolveTone` automatically on its `color` prop.
 - For **icons and non-text colours**, use `palette.emphasis`, `palette.textMuted`, `palette.dangerText`, etc., obtained via `useAppTheme()` or `usePalette()`.
 - Components that only need colours (no glass) should use `usePalette()` for a lighter hook.
+- **Backdrop layering.** React Navigation's default theme paints a light `rgb(242,242,242)` behind every screen and would hide the aurora; the root layout wraps the navigator in a transparent `ThemeProvider` (background and card are `transparent`) and each `ScreenScaffold` paints its own opaque backdrop (`BackdropLayers` inside the scaffold) with the palette background beneath. On web, inactive tab scenes stay mounted below the active one (`z-index: -1`), so only an opaque screen background can hide them; on Android the tab scenes detach, and the root `<AuroraBackground />` remains as a belt-and-braces fill behind everything. Non-text colours inside glass surfaces must still work over a dark gradient — pastel chips stay light in both themes by design.
 
 ### 4.6  Accessibility
 
@@ -169,6 +173,7 @@ __tests__/                   Jest unit tests
 ### 4.7  Offline
 
 - **Zero network calls.** No `fetch()`, `axios`, `XMLHttpRequest`, `https://` URLs.
+- `app.json` sets `updates.enabled: false` and `checkAutomatically: "NEVER"`, so Expo never reaches the update server.
 - No console.log/warn/error in shipped code (except behind `__DEV__`).
 - No TODO/FIXME/XXX comments.
 
@@ -187,17 +192,17 @@ __tests__/                   Jest unit tests
 
 ## 5  Commit conventions
 
-- One commit per phase: `phase-N: <short description>`.
+- Phases land as `phase-N: <short description>`; follow-up fixes for a shipped phase land as separate `phase-N: ...` commits.
 - Every commit must pass `npx tsc --noEmit` and `npx jest`.
 - Bundle must succeed: `npx expo export --platform android --no-bytecode`.
-- `.claude/` always excluded from git (`git reset -- .claude` before committing).
+- `.claude/` and `.kilo/` are always excluded via `.gitignore`.
 
 ---
 
 ## 6  Testing
 
 ```bash
-npm test           # Jest — 8 suites, 156+ tests
+npm test           # Jest — 8 suites, 157 tests
 npm run typecheck  # tsc --noEmit (must be zero errors)
 ```
 
@@ -228,7 +233,18 @@ Release checklist:
 2. `npx jest` — all pass
 3. `npx expo export --platform android --no-bytecode` — bundles
 4. Confirm INTERNET permission is blocked in `app.json` → `android.blockedPermissions`
-5. Grep for `fetch(`, `axios`, `console.log` — none found
+5. Confirm `expo-updates` is disabled (`updates.enabled: false` in `app.json`)
+6. Grep for `fetch(`, `axios`, `console.log` — none found
+
+### Visual verification (dev-only, web)
+
+`npx expo export --platform web --no-bytecode` produces a browsable render for
+an eyeball check of Light / Matcha Night across all screens. It is a **dev
+harness, not a supported target** — the app ships for Android only. Serving it
+requires COOP/COEP headers (e.g. a `serve.json` beside the export) or
+`expo-sqlite`'s wa-sqlite worker never boots. The `metro.config.js` at the
+repo root registers `.wasm` as an asset for exactly this. A visual check here
+does **not** replace the Android build as the release gate.
 
 ---
 
@@ -242,7 +258,7 @@ Release checklist:
 | 3 | `276f8fb` | Groceries: lists, price memory, finish-trip |
 | 4 | `8b283a8` | Reports: period switcher, charts, insights, CSV |
 | 5 | `f4baab7` | Safety: backup/restore, app lock, notifications, recently deleted |
-| 6 | *(in progress)* | Polish: dark mode, accessibility, hitSlop, keyboard handling |
+| 6 | `2ab8c7f` → `7affc43` → `8d321a9` | Polish: dark mode, accessibility, hitSlop, keyboard handling; Matcha Night wired incl. per-screen backdrop |
 
 ---
 
@@ -251,7 +267,9 @@ Release checklist:
 | What | Where |
 |---|---|
 | Design tokens (exact brief values) | `theme/colors.ts`, `theme/glass.ts`, `theme/typography.ts` |
-| Palette + dark mode resolver | `theme/colors.ts` → `Palette`, `resolveTone()` |
+| Palette + dark mode resolver | `theme/colors.ts` → `Palette`, `resolveTone()` (incl. `warningBg`) |
+| Opaque per-screen backdrop | `src/components/ui/ScreenScaffold.tsx` + `BackdropLayers` in `src/components/glass/AuroraBackground.tsx` |
+| Transparent navigator theme | `app/_layout.tsx` → `ThemeProvider` + `DefaultTheme`/`DarkTheme` overridden (`background`, `card`) |
 | Glass accessibility resolution | `src/hooks/useAppTheme.ts` |
 | Boot sequence | `app/_layout.tsx` → `src/db/boot.ts` |
 | Notification scheduling | `src/lib/notifications.ts` (stable IDs, cancel-before-schedule) |

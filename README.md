@@ -6,8 +6,9 @@ that feels like a native iPhone app.
 
 > **Offline is the hard constraint.** No backend, no accounts, no cloud sync, no
 > analytics, no crash reporting, no ads. The Android manifest does not even
-> request the `INTERNET` permission. Everything lives in a local SQLite file on
-> the device.
+> request the `INTERNET` permission, and `expo-updates` is disabled in
+> `app.json` — nothing can reach the network. Everything lives in a local
+> SQLite file on the device.
 
 ---
 
@@ -42,6 +43,10 @@ npm run ios        # macOS only
 npm test           # Jest — money, dates, budget math, groceries, reports, backup
 npm run typecheck  # tsc --noEmit
 ```
+
+For a quick visual check of Light / Matcha Night, `npx expo export --platform
+web --no-bytecode` produces a browsable build (serve it with COOP/COEP
+headers). It is a dev-only harness — the app ships for Android only.
 
 Performance: in a development build, **Settings → Developer → Seed 5,000 expenses**
 adds a month of test data so scrolling and reports can be checked on a slow
