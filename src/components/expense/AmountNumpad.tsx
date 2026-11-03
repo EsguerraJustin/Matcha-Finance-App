@@ -13,7 +13,6 @@ import { GlassSurface } from '../glass/GlassSurface';
 import { AppText } from '../ui/AppText';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { numpadAppend, numpadBackspace, type NumpadKey } from '../../lib/expenses';
-import { colors } from '../../../theme/colors';
 import { spacing } from '../../../theme/typography';
 import { selectionHaptic } from '../../lib/haptics';
 
@@ -86,7 +85,7 @@ const layout: readonly Keycap[] = [
               accessibilityHint="Long press to clear the amount"
               style={styles.key}
             >
-              <View style={[styles.keySurface, styles.plainKey, { borderColor: solidGlass ? colors.divider : 'transparent' }]}>
+              <View style={[styles.keySurface, styles.plainKey, { borderColor: solidGlass ? palette.divider : 'transparent' }]}>
                 <Delete size={26} strokeWidth={1.75} color={palette.emphasis} />
               </View>
             </Pressable>

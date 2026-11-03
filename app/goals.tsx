@@ -170,7 +170,7 @@ export default function GoalsScreen() {
               onPress={() => setColorKey(value)}
               accessibilityRole="button"
               accessibilityState={{ selected: value === colorKey }}
-              style={[styles.colorDot, { backgroundColor: value }, value === colorKey && styles.colorDotActive]}
+              style={[styles.colorDot, { backgroundColor: value }, value === colorKey && [styles.colorDotActive, { borderColor: palette.emphasis }]]}
             />
           ))}
         </View>
@@ -181,7 +181,7 @@ export default function GoalsScreen() {
           style={styles.switchRow}
         >
           <AppText variant="subhead">Count as set aside</AppText>
-          <View style={[styles.switchTrack, setAside && styles.switchTrackOn]}>
+          <View style={[styles.switchTrack, { backgroundColor: palette.isDark ? 'rgba(255,255,255,0.16)' : colors.matcha200 }, setAside && { backgroundColor: palette.primary }]}>
             <View style={[styles.switchThumb, setAside && styles.switchThumbOn]} />
           </View>
         </Pressable>
@@ -256,7 +256,6 @@ const styles = StyleSheet.create({
   },
   colorDotActive: {
     borderWidth: 3,
-    borderColor: colors.matcha700,
   },
   switchRow: {
     flexDirection: 'row',
@@ -268,12 +267,8 @@ const styles = StyleSheet.create({
     width: 51,
     height: 31,
     borderRadius: 999,
-    backgroundColor: colors.matcha200,
     padding: 2,
     justifyContent: 'center',
-  },
-  switchTrackOn: {
-    backgroundColor: colors.matcha500,
   },
   switchThumb: {
     width: 27,

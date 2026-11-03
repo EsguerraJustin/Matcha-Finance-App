@@ -240,8 +240,9 @@ export default function BackupScreen() {
 }
 
 function BackupRow({ label, last }: { label: string; last?: boolean }) {
+  const palette = usePalette();
   return (
-    <View style={[styles.backupRow, last && styles.backupRowLast]}>
+    <View style={[styles.backupRow, { borderBottomColor: palette.divider }, last && styles.backupRowLast]}>
       <View style={[styles.tick, { backgroundColor: withAlpha(categoryTint('Groceries'), 0.6) }]} />
       <AppText variant="subhead" style={styles.backupLabel}>
         {label}
@@ -276,7 +277,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     minHeight: 48,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
   },
   backupRowLast: {
     borderBottomWidth: 0,

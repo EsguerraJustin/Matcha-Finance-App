@@ -61,7 +61,7 @@ function ExpenseRowImpl({
       ]}
     >
       <View style={[styles.iconBubble, { backgroundColor: withAlpha(tint, 0.85) }]}>
-        <AppText variant="caption" color={palette.isDark ? '#16211A' : colors.matcha900} numberOfLines={1}>
+        <AppText variant="caption" color={palette.onPrimary} numberOfLines={1}>
           {expense.category_name.slice(0, 2).toUpperCase()}
         </AppText>
       </View>

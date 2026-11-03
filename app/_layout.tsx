@@ -145,6 +145,7 @@ const styles = StyleSheet.create({
   },
   splash: {
     flex: 1,
-    backgroundColor: '#F5FAF0',
+    // Overridden inline with the palette background (Matcha Night aware).
+    backgroundColor: 'transparent',
   },
 });

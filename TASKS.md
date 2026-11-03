@@ -7,8 +7,15 @@
 
 ## Status
 
-- **Phases 0–6**: committed and stable (Phase 6 committed as `b04a387`).
-- All tasks T1–T8 complete. TypeScript: 0 errors. Jest: 157 passing. Bundle: succeeds.
+- **Phases 0–6**: committed and stable. Phase 6 landed as `2ab8c7f`; the
+  post-commit Matcha Night audit (this file's T1–T8) is complete.
+- **Verification**: TypeScript 0 errors · Jest 157 passing · Android bundle
+  exports (`npx expo export --platform android --no-bytecode`).
+- T1–T8 all done — including the icon/stroke audit (every remaining
+  hard-coded `colors.*` is either resolved through `resolveTone()` or sits on
+  a permanently-light surface such as a primary button or pastel chip) and
+  the static `StyleSheet` divider sweep (now inline `palette.divider`).
+- `Palette` gained `warningBg`; see DECISIONS `P6-11`…`P6-14`.
 
 ---
 

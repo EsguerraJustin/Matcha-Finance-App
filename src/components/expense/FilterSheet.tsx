@@ -205,7 +205,7 @@ function PressableRow({
             ) : null}
           </View>
           <View style={[styles.checkbox, selected && styles.checkboxOn, { borderColor: colors.matcha200 }]}>
-            {selected ? <AppText variant="caption" color={colors.matcha900}>✓</AppText> : null}
+            {selected ? <AppText variant="caption" color={palette.emphasis}>✓</AppText> : null}
           </View>
         </View>
       </GlassSurface>

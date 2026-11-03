@@ -179,9 +179,9 @@ export default function GroceryListScreen() {
         <GlassSurface level="high" radius={20} padding={0} style={{ backgroundColor: glass.fillTintGreen }}>
           <View style={styles.totalsRow}>
             <TotalCell label="In cart" cents={purchased} />
-            <View style={styles.totalDivider} />
+            <View style={[styles.totalDivider, { backgroundColor: palette.divider }]} />
             <TotalCell label="Still to buy" cents={comparison.estimateCents - purchased} />
-            <View style={styles.totalDivider} />
+            <View style={[styles.totalDivider, { backgroundColor: palette.divider }]} />
             <TotalCell label="List total" cents={comparison.estimateCents} strong />
           </View>
         </GlassSurface>
@@ -328,9 +328,10 @@ function ItemRow({ item, onToggle, onDelete, first, last }: ItemRowProps) {
       accessibilityLabel={`${item.name}${item.unit ? `, ${item.quantity} ${item.unit}` : ''}`}
       style={({ pressed }) => [
         styles.itemRow,
-        first && styles.rowFirst,
+        { borderBottomColor: palette.divider },
+        first && [styles.rowFirst, { borderTopColor: palette.divider }],
         last && styles.rowLast,
-        pressed && styles.itemPressed,
+        pressed && { backgroundColor: palette.isDark ? 'rgba(255,255,255,0.07)' : 'rgba(232,243,221,0.5)' },
       ]}
     >
       <View style={[styles.checkbox, purchased && styles.checkboxOn]}>
@@ -341,7 +342,8 @@ function ItemRow({ item, onToggle, onDelete, first, last }: ItemRowProps) {
         <AppText
           variant="subhead"
           numberOfLines={1}
-          style={[purchased && styles.itemDone]}
+          color={purchased ? palette.textMuted : undefined}
+          style={purchased ? styles.itemDone : undefined}
         >
           {item.name}
         </AppText>
@@ -487,7 +489,6 @@ const styles = StyleSheet.create({
   },
   totalDivider: {
     width: StyleSheet.hairlineWidth,
-    backgroundColor: colors.divider,
   },
   itemRow: {
     flexDirection: 'row',
@@ -497,17 +498,12 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     minHeight: 52,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
   },
   rowFirst: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
   },
   rowLast: {
     borderBottomWidth: 0,
-  },
-  itemPressed: {
-    backgroundColor: 'rgba(232,243,221,0.5)',
   },
   checkbox: {
     width: 24,
@@ -528,7 +524,6 @@ const styles = StyleSheet.create({
   },
   itemDone: {
     textDecorationLine: 'line-through',
-    color: colors.textMuted,
   },
   deleteButton: {
     width: 32,

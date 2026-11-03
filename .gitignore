@@ -35,6 +35,10 @@ yarn-error.*
 # local env files
 .env*.local
 
+# agent tooling directories (not part of the app)
+.claude/
+.kilo/
+
 # typescript
 *.tsbuildinfo
 

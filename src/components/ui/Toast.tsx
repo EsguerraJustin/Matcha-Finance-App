@@ -13,7 +13,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GlassSurface } from '../glass/GlassSurface';
 import { AppText } from '../ui/AppText';
 import { usePalette } from '../../hooks/useAppTheme';
-import { colors } from '../../../theme/colors';
 import { spacing } from '../../../theme/typography';
 import { TAB_BAR_INSET } from '../glass/GlassTabBar';
 
@@ -67,7 +66,7 @@ export function Toast({ visible, message, actionLabel, onAction, onHide, tone = 
 
             {actionLabel && onAction ? (
               <>
-                <View style={[styles.divider, { backgroundColor: colors.matcha200 }]} />
+                <View style={[styles.divider, { backgroundColor: palette.divider }]} />
                 <AppText
                   variant="subhead"
                   color={palette.emphasis}

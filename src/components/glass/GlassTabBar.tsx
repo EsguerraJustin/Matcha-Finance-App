@@ -92,7 +92,7 @@ function GlassTabBarImpl({ state, navigation, insets }: BottomTabBarProps) {
               <View style={[styles.tabInner, focused && styles.tabInnerActive]}>
                 <Icon size={22} strokeWidth={1.75} color={focused ? palette.primary : palette.textMuted} />
                 {focused ? (
-                  <Text style={[styles.tabLabel, { color: palette.emphasis }]} numberOfLines={1}>
+                  <Text style={[styles.tabLabel, { color: palette.emphasis }]} numberOfLines={1} maxFontSizeMultiplier={1.3}>
                     {meta.label}
                   </Text>
                 ) : null}

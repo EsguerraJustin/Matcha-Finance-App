@@ -223,7 +223,7 @@ export default function ReportsScreen() {
             <GlassSurface level="high" radius={20} padding={0}>
               <View style={styles.donutLegend}>
                 {totals.donut.slice(0, 6).map((slice, index) => (
-                  <View key={slice.key} style={[styles.legendRow, index > 0 && styles.legendBorder]}>
+                  <View key={slice.key} style={[styles.legendRow, index > 0 && [styles.legendBorder, { borderTopColor: palette.divider }]]}>
                     <View style={[styles.dot, { backgroundColor: slice.color }]} />
                     <AppText variant="subhead" numberOfLines={1} style={styles.legendLabel}>
                       {slice.label}
@@ -250,7 +250,7 @@ export default function ReportsScreen() {
                         styles.bar,
                         {
                           height: point.value > 0 ? Math.max(4, (point.value / Math.max(1, maxDaily)) * 96) : 3,
-                          backgroundColor: point.value > 0 ? colors.matcha500 : colors.matcha200,
+                          backgroundColor: point.value > 0 ? colors.matcha500 : palette.divider,
                         },
                       ]}
                     />
@@ -368,7 +368,6 @@ const styles = StyleSheet.create({
   },
   legendBorder: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
   },
   legendLabel: {
     flex: 1,

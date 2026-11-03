@@ -43,7 +43,7 @@ import { spacing } from '../../theme/typography';
 
 export default function GroceriesScreen() {
   const db = useDb();
-  const { glass, palette } = useAppTheme();
+  const { palette } = useAppTheme();
   const today = todayISO();
 
   const { data: lists } = useDbQuery<GroceryListRow[]>(
@@ -182,7 +182,7 @@ export default function GroceriesScreen() {
         </Section>
       ) : null}
 
-      <GlassButton label="New grocery list" icon={<Plus size={20} strokeWidth={2} color={colors.matcha900} />} onPress={() => void handleNewList()} style={{ backgroundColor: glass.fillStrong }} />
+      <GlassButton label="New grocery list" variant="secondary" icon={<Plus size={20} strokeWidth={2} color={palette.emphasis} />} onPress={() => void handleNewList()} />
 
       <AppText variant="footnote" color={palette.textMuted} center>
         Finishing a trip records exactly one Groceries expense.
@@ -239,9 +239,10 @@ function ListRow({ list, items, onPress, onDelete, remainingBudget, first, last 
       accessibilityHint={`${bought} bought, ${toBuy} to buy`}
       style={({ pressed }) => [
         styles.row,
-        first && styles.rowFirst,
+        { borderBottomColor: palette.divider },
+        first && [styles.rowFirst, { borderTopColor: palette.divider }],
         last && styles.rowLast,
-        pressed && styles.rowPressed,
+        pressed && { backgroundColor: palette.isDark ? 'rgba(255,255,255,0.07)' : 'rgba(232,243,221,0.6)' },
       ]}
     >
       <View style={styles.rowText}>
@@ -287,17 +288,12 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     minHeight: 56,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
   },
   rowFirst: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
   },
   rowLast: {
     borderBottomWidth: 0,
-  },
-  rowPressed: {
-    backgroundColor: 'rgba(232,243,221,0.6)',
   },
   rowText: {
     flex: 1,

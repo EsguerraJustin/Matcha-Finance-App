@@ -189,7 +189,7 @@ export default function HomeScreen() {
         <GlassSurface
           radius={20}
           padding={14}
-          style={{ backgroundColor: summary.threshold === 'exceeded' ? palette.dangerBg : colors.warningBg }}
+          style={{ backgroundColor: summary.threshold === 'exceeded' ? palette.dangerBg : palette.warningBg }}
         >
           <AppText variant="subhead" color={summary.threshold === 'exceeded' ? palette.dangerText : palette.warningText}>
             {budgetCopy(summary)}
@@ -203,7 +203,7 @@ export default function HomeScreen() {
           <AppText variant="headline">Next 7 days</AppText>
           <GlassSurface radius={20} padding={0}>
             {bills.map((bill, index) => (
-              <View key={`${bill.ruleId}-${bill.dueOn}`} style={[styles.billRow, index > 0 && styles.billRowBorder]}>
+              <View key={`${bill.ruleId}-${bill.dueOn}`} style={[styles.billRow, index > 0 && [styles.billRowBorder, { borderTopColor: palette.divider }]]}>
                 <AppText variant="subhead" numberOfLines={1} style={styles.billLabel}>
                   {bill.kind === 'allowance' ? 'Allowance' : 'Bill'}
                 </AppText>
@@ -246,7 +246,7 @@ export default function HomeScreen() {
         ) : (
           <GlassSurface radius={20} padding={0}>
             {recent.map((expense, index) => (
-              <View key={expense.id} style={index > 0 ? styles.rowBorder : undefined}>
+              <View key={expense.id} style={index > 0 ? [styles.rowBorder, { borderTopColor: palette.divider }] : undefined}>
                 <ExpenseRow expense={expense} onPress={(row) => openAddExpense(row.id)} />
               </View>
             ))}
@@ -344,13 +344,11 @@ const styles = StyleSheet.create({
   },
   billRowBorder: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
   },
   billLabel: {
     flex: 1,
   },
   rowBorder: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
   },
 });

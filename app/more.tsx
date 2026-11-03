@@ -134,9 +134,10 @@ function MenuRow({ item, first, last }: { item: MenuItem; first: boolean; last: 
       accessibilityHint={item.hint}
       style={({ pressed }) => [
         styles.row,
-        first && styles.rowFirst,
+        { borderBottomColor: palette.divider },
+        first && [styles.rowFirst, { borderTopColor: palette.divider }],
         last && styles.rowLast,
-        pressed && styles.rowPressed,
+        pressed && { backgroundColor: palette.isDark ? 'rgba(255,255,255,0.07)' : 'rgba(232,243,221,0.5)' },
       ]}
     >
       <View style={[styles.iconBubble, { backgroundColor: withAlpha(item.tint, 0.9) }]}>
@@ -165,17 +166,12 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     minHeight: 52,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
   },
   rowFirst: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
   },
   rowLast: {
     borderBottomWidth: 0,
-  },
-  rowPressed: {
-    backgroundColor: withAlpha(colors.matcha100, 0.5),
   },
   iconBubble: {
     width: 32,

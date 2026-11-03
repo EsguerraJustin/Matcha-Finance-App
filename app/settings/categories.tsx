@@ -133,7 +133,7 @@ export default function CategoryManagerScreen() {
               {expanded === category.id ? (
                 <View style={styles.cardBody}>
                   {category.types.map((type) => (
-                    <View key={type.id} style={styles.typeRow}>
+                    <View key={type.id} style={[styles.typeRow, { borderBottomColor: palette.divider }]}>
                       {renamingTypeId === type.id ? (
                         <GlassInput
                           value={renamingValue}
@@ -186,7 +186,7 @@ export default function CategoryManagerScreen() {
                         style={[
                           styles.colorDot,
                           { backgroundColor: withAlpha(categoryColorList[COLOR_KEYS.indexOf(key)], 0.95) },
-                          category.color_key === key && styles.colorDotActive,
+                          category.color_key === key && [styles.colorDotActive, { borderColor: palette.emphasis }],
                         ]}
                       />
                     ))}
@@ -326,7 +326,6 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingVertical: 4,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
   },
   renameField: {
     flex: 1,
@@ -343,7 +342,6 @@ const styles = StyleSheet.create({
   },
   colorDotActive: {
     borderWidth: 3,
-    borderColor: colors.matcha700,
   },
   archiveRow: {
     flexDirection: 'row',

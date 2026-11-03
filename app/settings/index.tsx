@@ -296,9 +296,9 @@ function PinDots({ value, onChange }: { value: string; onChange: (next: string) 
             accessibilityRole="button"
             accessibilityLabel={key}
             onPress={() => onChange(value.length >= 6 ? value : value + key)}
-            style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
+            style={({ pressed }) => [styles.key, { backgroundColor: palette.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.55)' }, pressed && { backgroundColor: palette.isDark ? 'rgba(255,255,255,0.18)' : colors.matcha100 }]}
           >
-            <AppText variant="subhead" color={colors.matcha900}>
+            <AppText variant="subhead">
               {key}
             </AppText>
           </Pressable>
@@ -327,7 +327,7 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
 function Row({ label, hint, children, last }: { label: string; hint?: string; children: React.ReactNode; last?: boolean }) {
   const palette = usePalette();
   return (
-    <View style={[styles.row, last && styles.rowLast]}>
+    <View style={[styles.row, { borderBottomColor: palette.divider }, last && styles.rowLast]}>
       <View style={styles.rowHeader}>
         <AppText variant="subhead">{label}</AppText>
         {hint ? (
@@ -356,7 +356,7 @@ function ToggleRow({
 }) {
   const palette = usePalette();
   return (
-    <View style={[styles.toggleRow, last && styles.rowLast]}>
+    <View style={[styles.toggleRow, { borderBottomColor: palette.divider }, last && styles.rowLast]}>
       <View style={styles.rowHeader}>
         <AppText variant="subhead">{label}</AppText>
         {hint ? (
@@ -368,8 +368,8 @@ function ToggleRow({
       <Switch
         value={value}
         onValueChange={onChange}
-trackColor={{ true: palette.emphasis, false: colors.matcha200 }}
-thumbColor={palette.cardFill}
+        trackColor={{ true: palette.emphasis, false: palette.isDark ? 'rgba(255,255,255,0.16)' : colors.matcha200 }}
+        thumbColor="#FFFFFF"
         accessibilityLabel={label}
       />
     </View>
@@ -384,7 +384,7 @@ function LinkRow({ label, hint, onPress, last }: { label: string; hint: string; 
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityHint={hint}
-      style={({ pressed }) => [styles.toggleRow, last && styles.rowLast, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.toggleRow, { borderBottomColor: palette.divider }, last && styles.rowLast, pressed && { backgroundColor: palette.isDark ? 'rgba(255,255,255,0.07)' : 'rgba(232,243,221,0.5)' }]}
     >
       <View style={styles.rowHeader}>
         <AppText variant="subhead">{label}</AppText>
@@ -408,7 +408,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingBottom: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
   },
   rowLast: {
     paddingBottom: 0,
@@ -424,10 +423,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingBottom: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
-  },
-  pressed: {
-    backgroundColor: 'rgba(232,243,221,0.5)',
   },
   glassPreview: {
     flexDirection: 'row',
@@ -476,10 +471,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.4)',
-  },
-  keyPressed: {
-    backgroundColor: colors.matcha100,
   },
   backspace: {
     paddingHorizontal: spacing.sm,

@@ -78,6 +78,8 @@ export interface Palette {
   dangerBg: string;
   successText: string;
   warningText: string;
+  /** Soft warning banner background (light amber pastel). */
+  warningBg: string;
   isDark: boolean;
 }
 
@@ -95,6 +97,7 @@ export const lightPalette: Palette = {
   dangerBg: colors.dangerBg,
   successText: colors.successText,
   warningText: colors.warningText,
+  warningBg: colors.warningBg,
   isDark: false,
 };
 
@@ -112,6 +115,7 @@ export const darkPalette: Palette = {
   dangerBg: 'rgba(248,207,202,0.18)',
   successText: '#A9D9AE',
   warningText: '#EBCB8B',
+  warningBg: 'rgba(255,233,184,0.15)',
   isDark: true,
 };
 
@@ -144,6 +148,8 @@ export function resolveTone(color: string, palette: Palette): string {
       return palette.successText;
     case colors.warningText:
       return palette.warningText;
+    case colors.warningBg:
+      return palette.warningBg;
     default:
       return color;
   }

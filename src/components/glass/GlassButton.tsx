@@ -3,7 +3,7 @@
  *
  * Capsule, 52 pt tall. Primary = matcha500 with matcha900 text (white text on
  * pastel green fails contrast — brief Section 4.4). Secondary = glass fill with
- * matcha700 text. Destructive = dangerBg with dangerText.
+ * palette emphasis text (tracks light/dark). Destructive = dangerBg with dangerText.
  */
 
 import React, { memo, useCallback } from 'react';
@@ -63,9 +63,11 @@ function GlassButtonImpl({
 
   const palette = {
     primary: { background: colors.matcha500, pressed: colors.matcha600, text: colors.matcha900, blur: false },
-    secondary: { background: glass.fillStrong, pressed: colors.matcha100, text: colors.matcha700, blur: true },
-    ghost: { background: 'transparent', pressed: colors.matcha100, text: colors.matcha700, blur: false },
-    destructive: { background: themePalette.dangerBg, pressed: '#F2B9B1', text: themePalette.dangerText, blur: false },
+    // Pastel-green pressed tints stay light in the light theme; in Matcha
+    // Night they would flash. Use a neutral white-overlay instead.
+    secondary: { background: glass.fillStrong, pressed: themePalette.isDark ? 'rgba(255,255,255,0.09)' : colors.matcha100, text: themePalette.emphasis, blur: true },
+    ghost: { background: 'transparent', pressed: themePalette.isDark ? 'rgba(255,255,255,0.09)' : colors.matcha100, text: themePalette.emphasis, blur: false },
+    destructive: { background: themePalette.dangerBg, pressed: themePalette.isDark ? 'rgba(242,176,168,0.32)' : '#F2B9B1', text: themePalette.dangerText, blur: false },
   }[variant];
 
   const height = HEIGHTS[size];
@@ -110,7 +112,7 @@ function GlassButtonImpl({
 
       <View style={styles.content}>
         {loading ? <ActivityIndicator color={palette.text} style={styles.spinner} /> : icon}
-        <Text style={[styles.label, { color: palette.text, fontSize }]} numberOfLines={1}>
+        <Text style={[styles.label, { color: palette.text, fontSize }]} numberOfLines={1} maxFontSizeMultiplier={1.3}>
           {label}
         </Text>
       </View>

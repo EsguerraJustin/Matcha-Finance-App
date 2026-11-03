@@ -57,8 +57,9 @@ import {
   type FilterState,
 } from '../../src/lib/expenses';
 import { endOfMonthISO, relativeDayLabel, todayISO, weekRangeISO, type WeekStart } from '../../src/lib/date';
-import { colors } from '../../theme/colors';
+
 import { spacing } from '../../theme/typography';
+
 
 export default function HistoryScreen() {
   const db = useDb();
@@ -183,8 +184,8 @@ export default function HistoryScreen() {
           >
             <SlidersHorizontal size={22} strokeWidth={1.75} color={palette.emphasis} />
             {activeFilterCount ? (
-              <View style={styles.badge}>
-                <AppText variant="caption" color={colors.matcha900}>
+              <View style={[styles.badge, { backgroundColor: palette.primary }]}>
+                <AppText variant="caption" color={palette.onPrimary}>
                   {activeFilterCount}
                 </AppText>
               </View>
@@ -324,7 +325,7 @@ function SwipeableRow({ expense, onOpen, onDelete, onDuplicate, onLongPress }: S
       renderRightActions={(progress, translation, methods: SwipeableMethods) => (
         <SwipeAction
           side="right"
-          icon={<CopyPlus size={22} strokeWidth={1.75} color={colors.matcha900} />}
+          icon={<CopyPlus size={22} strokeWidth={1.75} color={palette.emphasis} />}
           label="Copy"
           background={palette.cardFill}
           onPress={() => {
@@ -430,7 +431,6 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 9,
     paddingHorizontal: 4,
-    backgroundColor: colors.matcha200,
     alignItems: 'center',
     justifyContent: 'center',
   },

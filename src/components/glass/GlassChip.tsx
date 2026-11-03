@@ -100,6 +100,7 @@ function GlassChipImpl({
             },
           ]}
           numberOfLines={1}
+          maxFontSizeMultiplier={1.3}
         >
           {label}
         </Text>

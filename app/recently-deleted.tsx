@@ -23,7 +23,6 @@ import {
   type ExpenseRow as ExpenseRowModel,
 } from '../src/db/repositories/expensesRepo';
 import { diffDaysISO, todayISO } from '../src/lib/date';
-import { colors } from '../theme/colors';
 import { spacing } from '../theme/typography';
 
 export default function RecentlyDeletedScreen() {
@@ -76,9 +75,10 @@ export default function RecentlyDeletedScreen() {
                 accessibilityLabel={`${expense.category_name}, ${expense.amount_cents / 100}`}
                 style={({ pressed }) => [
                   styles.row,
-                  index === 0 && styles.rowFirst,
+                  { borderBottomColor: palette.divider },
+                  index === 0 && [styles.rowFirst, { borderTopColor: palette.divider }],
                   index === rows.length - 1 && styles.rowLast,
-                  pressed && styles.pressed,
+                  pressed && { backgroundColor: palette.isDark ? 'rgba(255,255,255,0.07)' : 'rgba(232,243,221,0.5)' },
                 ]}
               >
                 <View style={[styles.dot, { backgroundColor: categoryTint(expense.category_name) }]} />
@@ -120,17 +120,12 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     minHeight: 56,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
   },
   rowFirst: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
   },
   rowLast: {
     borderBottomWidth: 0,
-  },
-  pressed: {
-    backgroundColor: 'rgba(232,243,221,0.5)',
   },
   dot: {
     width: 10,

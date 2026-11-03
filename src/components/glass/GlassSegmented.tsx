@@ -102,6 +102,7 @@ function GlassSegmentedImpl<T extends string>({ options, value, onChange, style,
           >
             <Text
               numberOfLines={1}
+              maxFontSizeMultiplier={1.3}
               style={[styles.label, { color: active ? palette.text : palette.textMuted, fontWeight: active ? '700' : '500' }]}
             >
               {option.label}

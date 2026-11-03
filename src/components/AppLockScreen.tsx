@@ -18,7 +18,7 @@ import { useSettingsStore } from '../state/settingsStore';
 import { MatchaLeaf } from './ui/EmptyState';
 import { authenticateBiometric, biometricAvailable, validPin, verifyPin } from '../lib/appLock';
 import { warningHaptic } from '../lib/haptics';
-import { colors } from '../../theme/colors';
+
 import { spacing } from '../../theme/typography';
 import { useAppTheme } from '../hooks/useAppTheme';
 
@@ -103,7 +103,7 @@ export default function AppLockScreen({ onUnlock }: AppLockScreenProps) {
         {/* PIN dots ------------------------------------------------- */}
         <View style={styles.dots} accessibilityRole="summary" accessibilityLabel={`${pin.length} of digits entered`}>
           {[0, 1, 2, 3, 4, 5].map((index) => (
-            <View key={index} style={[styles.dot, pin.length > index && styles.dotOn, { borderColor: palette.primary }, pin.length > index && { backgroundColor: palette.primary }]} />
+            <View key={index} style={[styles.dot, { borderColor: palette.primary }, pin.length > index && { backgroundColor: palette.primary }]} />
           ))}
         </View>
 
@@ -190,10 +190,6 @@ const styles = StyleSheet.create({
     height: 12,
     borderRadius: 999,
     borderWidth: 1.5,
-    borderColor: colors.matcha400,
-  },
-  dotOn: {
-    backgroundColor: colors.matcha500,
   },
   keypad: {
     alignSelf: 'center',
@@ -221,9 +217,6 @@ const styles = StyleSheet.create({
   keyBlank: {
     width: 84,
     height: 68,
-  },
-  keyPressed: {
-    backgroundColor: colors.matcha100,
   },
   unlock: {
     marginTop: spacing.xs,
