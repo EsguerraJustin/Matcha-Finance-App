@@ -58,12 +58,14 @@ device. The action is compiled out of production builds (`__DEV__`).
 # One-time: log in to Expo (needed for EAS-hosted builds)
 npx eas login
 
-# Preview build (internal testers)
+# Preview build (APK, for sideloading / internal testers)
 npx eas build --platform android --profile preview
 
-# Production build (APK + AAB), configure appVersionCode/owner in eas.json
+# Production build (AAB, for the Play Store)
 npx eas build --platform android --profile production
 ```
+
+The `preview` and `production` profiles are defined in `eas.json`.
 
 For a fully local APK without EAS:
 

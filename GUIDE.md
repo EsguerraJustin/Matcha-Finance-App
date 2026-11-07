@@ -48,6 +48,13 @@
 ### Environment notes
 
 - `npx expo install` fails in this environment (`EALLOWSCRIPTS`); install with `npm install <pkg>@<version>` using the version from `node_modules/expo/bundledNativeModules.json`.
+- **Gradle must run on JDK 21, not JDK 24.** JDK 24 prints `WARNING: A restricted method in java.lang.System has been called` on stderr, and Android Gradle Plugin's prefab/CMake task treats *any* stderr warning as fatal — `configureCMakeRelWithDebInfo` for `react-native-worklets` and `react-native-screens` fails with that warning as the only message. Build with:
+  ```powershell
+  cd android
+  $env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot"
+  .\gradlew.bat assembleRelease
+  ```
+  JDK 21 lives in `C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot`; `java` on `PATH` already resolves there, but `JAVA_HOME` points at `C:\Program Files\Java\jdk-24`, which Gradle uses instead.
 - Git is local-only, user `Matcha Wallet Dev <dev@matchawallet.local>`.
 - `.claude/`, `.kilo/`, `.playwright-mcp/`, `dist-web/`, `android/`, `dist/`, `.expo/` are gitignored.
 - `dist-web/` is a dev-only web export for visual verification; it is **not** a supported distribution (Android only).
@@ -235,6 +242,19 @@ Release checklist:
 4. Confirm INTERNET permission is blocked in `app.json` → `android.blockedPermissions`
 5. Confirm `expo-updates` is disabled (`updates.enabled: false` in `app.json`)
 6. Grep for `fetch(`, `axios`, `console.log` — none found
+7. Build the APK (JDK 21 — see §2 environment notes) and confirm the **merged**
+   manifest is clean, not just `app.json`:
+   ```powershell
+   cd android
+   $env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot"
+   .\gradlew.bat assembleRelease
+   # then inspect the merged manifest:
+   Select-String -Path app\build\intermediates\merged_manifests\release\AndroidManifest.xml -Pattern "uses-permission"
+   ```
+   Expected: `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `RECORD_AUDIO`
+   and `SYSTEM_ALERT_WINDOW` are all absent (they carry `tools:node="remove"`).
+   `SYSTEM_ALERT_WINDOW` ships in Expo's default manifest template and this app
+   uses no overlay windows, so it is explicitly blocked in `app.json`.
 
 ### Visual verification (dev-only, web)
 
