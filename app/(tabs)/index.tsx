@@ -106,7 +106,7 @@ export default function HomeScreen() {
       }
     >
       {/* 1 — safe to spend today ------------------------------------- */}
-      <GlassCard fill="fillTintGreen" level="high" padding={spacing.lg}>
+      <GlassCard fill="fillTintGreen" level="high" padding={12}>
         <View style={styles.hero}>
           <View style={styles.heroText}>
             <AppText variant="footnote" color={palette.textMuted}>
@@ -135,7 +135,7 @@ export default function HomeScreen() {
 
       {/* 2 — allowance + budget minis -------------------------------- */}
       <View style={styles.row}>
-        <GlassCard style={styles.half} padding={14}>
+        <GlassCard style={styles.half} padding={12}>
           <AppText variant="caption" color={palette.textMuted}>
             Allowance left
           </AppText>
@@ -146,7 +146,7 @@ export default function HomeScreen() {
           </AppText>
         </GlassCard>
 
-        <GlassCard style={styles.half} padding={14}>
+        <GlassCard style={styles.half} padding={12}>
           <AppText variant="caption" color={palette.textMuted}>
             {budget?.kind === 'weekly' ? 'Budget left' : budget ? 'Budget left' : 'No budget'}
           </AppText>
@@ -171,7 +171,7 @@ export default function HomeScreen() {
                 accessibilityLabel={`Add ${template.label}`}
                 style={({ pressed }) => [styles.favorite, { transform: [{ scale: pressed ? 0.96 : 1 }] }]}
               >
-                <GlassSurface radius={20} padding={10} style={styles.favoriteSurface}>
+                <GlassSurface radius={20} padding={8} style={styles.favoriteSurface}>
                   <View style={[styles.favoriteDot, { backgroundColor: withAlpha(categoryTint(template.category_name), 0.9) }]} />
                   <AppText variant="caption" color={colors.matcha900} numberOfLines={1}>
                     {template.label}
@@ -261,7 +261,7 @@ export default function HomeScreen() {
         </AppText>
       ) : (
         <AppText variant="footnote" color={palette.textMuted} center>
-          Set an allowance and a weekly budget to see your safe-to-spend number.
+          Set an allowance and a budget to see safe-to-spend.
         </AppText>
       )}
     </ScreenScaffold>
@@ -293,8 +293,8 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   heroAmount: {
-    fontSize: 44,
-    lineHeight: 52,
+    fontSize: 36,
+    lineHeight: 44,
   },
   row: {
     flexDirection: 'row',
@@ -304,8 +304,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   miniBar: {
-    marginTop: spacing.xs,
-    marginBottom: spacing.xxs,
+    marginTop: 4,
+    marginBottom: 0,
   },
   section: {
     gap: spacing.xs,
@@ -329,8 +329,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   favoriteDot: {
-    width: 20,
-    height: 20,
+    width: 16,
+    height: 16,
     borderRadius: 999,
     marginBottom: 2,
   },

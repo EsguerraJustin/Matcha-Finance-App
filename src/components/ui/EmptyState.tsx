@@ -50,7 +50,7 @@ function EmptyStateImpl({ title, message, actionLabel, onAction, compact = false
   const palette = usePalette();
   return (
     <View style={[styles.root, compact && styles.compact]} accessibilityRole="summary">
-      <MatchaLeaf size={compact ? 64 : 96} />
+      <MatchaLeaf size={compact ? 48 : 96} />
       <AppText variant="title2" center>
         {title}
       </AppText>
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   compact: {
-    paddingVertical: spacing.lg,
+    paddingVertical: spacing.xs,
   },
   message: {
     maxWidth: 280,

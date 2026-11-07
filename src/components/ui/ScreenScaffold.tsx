@@ -84,8 +84,8 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    gap: spacing.md,
+    paddingTop: spacing.xs,
+    gap: spacing.xs,
   },
 });
 
