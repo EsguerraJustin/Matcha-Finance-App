@@ -229,16 +229,17 @@ export default function SettingsScreen() {
         />
         {!settings.appLockEnabled ? (
           <Row label="New PIN" hint="4 to 6 digits, kept in the device keychain — never in the database or a backup">
-            <View style={styles.pinRow}>
+            {/* Stacked: a horizontal row here pushed the keypad past the card's
+                right edge, where overflow:hidden clipped every digit key — the
+                PIN could never be entered. Full width keeps the keypad on-screen. */}
+            <View style={styles.pinStack}>
               <ChipRow
                 items={['4', '5', '6'].map((length) => ({ id: length, label: `${length} digits` }))}
                 selectedIds={[String(pinDraft.length || 4)]}
                 onToggle={() => undefined}
                 size="small"
               />
-              <View style={styles.pinInput}>
-                <PinDots value={pinDraft} onChange={setPinDraft} />
-              </View>
+              <PinDots value={pinDraft} onChange={setPinDraft} />
             </View>
           </Row>
         ) : null}
@@ -284,10 +285,17 @@ function PinDots({ value, onChange }: { value: string; onChange: (next: string) 
 
   return (
     <View style={styles.pinGrid}>
-      <View style={styles.dots}>
-        {[0, 1, 2, 3, 4, 5].map((index) => (
-          <View key={index} style={[styles.dot, value.length > index && styles.dotOn]} />
-        ))}
+      <View style={styles.dotsRow}>
+        <View style={styles.dots}>
+          {[0, 1, 2, 3, 4, 5].map((index) => (
+            <View key={index} style={[styles.dot, value.length > index && styles.dotOn]} />
+          ))}
+        </View>
+        <Pressable accessibilityRole="button" accessibilityLabel="Backspace" onPress={() => onChange(value.slice(0, -1))} style={styles.backspace}>
+          <AppText variant="caption" color={palette.emphasis}>
+            Delete
+          </AppText>
+        </Pressable>
       </View>
       <View style={styles.keys}>
         {keys.map((key) => (
@@ -304,11 +312,6 @@ function PinDots({ value, onChange }: { value: string; onChange: (next: string) 
           </Pressable>
         ))}
       </View>
-      <Pressable accessibilityRole="button" accessibilityLabel="Backspace" onPress={() => onChange(value.slice(0, -1))} style={styles.backspace}>
-        <AppText variant="caption" color={palette.emphasis}>
-          Delete
-        </AppText>
-      </Pressable>
     </View>
   );
 }
@@ -434,18 +437,17 @@ const styles = StyleSheet.create({
     height: 56,
     borderWidth: StyleSheet.hairlineWidth * 2,
   },
-  pinRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+  pinStack: {
     gap: spacing.md,
-  },
-  pinInput: {
-    flex: 1,
   },
   pinGrid: {
+    flexDirection: 'column',
+    gap: spacing.sm,
+  },
+  dotsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    justifyContent: 'space-between',
   },
   dots: {
     flexDirection: 'row',
@@ -466,7 +468,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   key: {
-    width: 32,
+    flex: 1,
     height: 36,
     borderRadius: 10,
     alignItems: 'center',

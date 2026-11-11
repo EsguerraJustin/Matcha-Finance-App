@@ -67,12 +67,18 @@ npx eas build --platform android --profile production
 
 The `preview` and `production` profiles are defined in `eas.json`.
 
-For a fully local APK without EAS:
+For a fully local APK without EAS (requires **JDK 21** — see the environment
+notes in `GUIDE.md` §2; AGP's CMake tasks fail on JDK 24):
 
 ```bash
 npx expo prebuild --platform android
-cd android && ./gradlew assembleRelease
+cd android
+# Windows PowerShell — point Gradle at JDK 21 explicitly:
+#   $env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot"
+./gradlew assembleRelease
 ```
+
+The APK lands at `android/app/build/outputs/apk/release/app-release.apk`.
 
 > Add `android.permission.INTERNET` removal check to your release checklist —
 > `app.json` already blocks it via `android.blockedPermissions`.
@@ -86,11 +92,18 @@ app/                      Expo Router routes
   _layout.tsx             fonts → migrations → seed → settings → navigator (+ app lock)
   (tabs)/                 Home · History · Groceries · Reports
   add-expense-sheet.tsx   Add/Edit expense sheet host
+  allowance.tsx           Money-in entries + recurring allowance setup
+  budgets.tsx             Create/list budgets, category limits, rollover
+  goals.tsx               Savings goals with progress ring
   grocery-list.tsx        Grocery list detail + finish-trip flow
+  more.tsx                Hub linking to all non-tab screens
+  recurring.tsx           Recurring rules (auto-add / remind)
   recently-deleted.tsx    Soft-deleted expenses (30-day grace)
+  +not-found.tsx          404 fallback
   settings/
     index.tsx             All settings: currency, cycles, theme, lock, reminders
     backup.tsx            Export/restore/erase backup
+    categories.tsx        Category/type/payment method manager
 theme/                    design tokens (the exact brief values)
   colors.ts               matcha palette, category pastels, Matcha Night
   glass.ts                glassmorphism tokens + solid fallback resolution

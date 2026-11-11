@@ -143,7 +143,7 @@ export default function AllowanceScreen() {
           </View>
         </View>
         <AppText variant="caption" color={palette.textMuted}>
-          {runwayCopy(overview.data.runwayDays, overview.data.net_cents)}
+          {runwayCopy(overview.data.runwayDays, overview.data.net_cents, overview.data.allowance_cents)}
         </AppText>
       </GlassCard>
 
@@ -191,10 +191,13 @@ export default function AllowanceScreen() {
   );
 }
 
-function runwayCopy(runwayDays: number | null, netCents: number): string {
+function runwayCopy(runwayDays: number | null, netCents: number, allowanceCents: number): string {
   if (runwayDays === null) return 'Nothing spent this cycle yet.';
-  if (netCents <= 0) return 'This cycle is covered — nice work.';
+  if (allowanceCents <= 0) return 'No allowance logged for this cycle yet.';
+  if (netCents < 0) return "You've spent more than this cycle's allowance.";
+  if (netCents === 0) return "Used up this cycle's allowance exactly.";
   if (runwayDays >= 31) return 'Comfortably covered for the whole cycle.';
+  if (runwayDays < 1) return "At this pace, the allowance won't last the cycle.";
   return `At this pace, your money lasts about ${runwayDays} days.`;
 }
 

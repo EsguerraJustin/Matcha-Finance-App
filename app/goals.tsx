@@ -40,6 +40,7 @@ export default function GoalsScreen() {
 
   const [name, setName] = useState('');
   const [targetText, setTargetText] = useState('');
+  const [contributionText, setContributionText] = useState('');
   const [date, setDate] = useState('');
   const [colorKey, setColorKey] = useState('Food');
   const [setAside, setSetAside] = useState(true);
@@ -111,7 +112,7 @@ export default function GoalsScreen() {
                   size="small"
                   onPress={() => {
                     setContributionIds((current) => (current.includes(goal.id) ? current : [goal.id]));
-                    setTargetText('');
+                    setContributionText('');
                   }}
                   style={styles.action}
                 />
@@ -129,8 +130,8 @@ export default function GoalsScreen() {
               {isActive ? (
                 <GlassSurface radius={16} padding={12} level="low">
                   <GlassInput
-                    value={targetText}
-                    onChangeText={setTargetText}
+                    value={contributionText}
+                    onChangeText={setContributionText}
                     placeholder="₱500"
                     keyboardType="decimal-pad"
                     containerStyle={styles.contributionInput}
@@ -139,14 +140,15 @@ export default function GoalsScreen() {
                     label="Add contribution"
                     size="small"
                     onPress={() => {
-                      const cents = Math.round(Number(targetText.replace(/[^\d.]/g, '')) * 100);
+                      const cents = Math.round(Number(contributionText.replace(/[^\d.]/g, '')) * 100);
                       if (!db || !Number.isFinite(cents) || cents <= 0) return;
                       void addContribution(db, goal.id, cents).then(() => {
                         setContributionIds((current) => current.filter((id) => id !== goal.id));
+                        setContributionText('');
                         showToast({ message: 'Added to your goal.', tone: 'success' });
                       });
                     }}
-                    disabled={!targetText.trim()}
+                    disabled={!contributionText.trim()}
                   />
                 </GlassSurface>
               ) : null}

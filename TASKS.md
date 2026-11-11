@@ -10,10 +10,20 @@
 - **Phases 0–6**: committed and stable. Phase 6 landed as `2ab8c7f`; the
   post-commit Matcha Night audit landed as `7affc43`; the web-export visual
   pass (invisible-heading fix, navigator theme, per-screen backdrop) as
-  `8d321a9`.
+  `8d321a9`. The Phase 6 release pass followed: `5b0f74f` (block
+  `SYSTEM_ALERT_WINDOW`, drop `edgeToEdgeEnabled`, add `eas.json`, document
+  the JDK 21 Gradle build) and `a99ede2` (compact Home so the empty-state CTA
+  clears the floating tab bar without scrolling).
 - **Verification**: TypeScript 0 errors · Jest 157 passing · Android bundle
   exports (`npx expo export --platform android --no-bytecode`) · web export
   boots and renders all screens in Light and Matcha Night (Playwright).
+- **Release-hardening UAT sweep** (on-device, emulator 1080×2340): eight flaws
+  found and fixed, all verified on the release APK — DECISIONS `P6-23`…`P6-29`
+  cover them (route-backed add-expense store + Reports CTA, grocery loading
+  gate, conditional `ItemSheet` mount, budgets duplicate caption, allowance
+  runway copy, goals shared-input state, Settings PIN keypad overflow).
+  Font scale 130% checked and restored; README acceptance (Rice + Milk → one
+  ₱195 Groceries expense) passed end-to-end.
 - T1–T8 all done — including the icon/stroke audit (every remaining
   hard-coded `colors.*` is either resolved through `resolveTone()` or sits on
   a permanently-light surface such as a primary button or pastel chip) and

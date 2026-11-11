@@ -117,7 +117,7 @@ src/
   state/                     Zustand stores (UI state only)
     dbStore.ts               DB ref + reactive query hook (useDbQuery)
     settingsStore.ts         Hydrated settings from SQLite
-    addExpenseStore.ts       Sheet open/close, editing target
+    addExpenseStore.ts       Route-backed sheet open/close (push/pop + reset), editing target
     toastStore.ts            Global toast state
   hooks/
     useAppTheme.ts           Accessibility prefs + glass resolution + palette
@@ -142,6 +142,7 @@ metro.config.js             .wasm registered as an asset so the web export bundl
 - **Always integer centavos.** No floats anywhere in data or calculations.
 - `src/lib/money.ts` is the only parser (`parseAmountToCents`).
 - `<MoneyText />` is the only renderer.
+- Thousands group with a **thin space** (`\u2009`, e.g. `₱1 000.00`), never a comma; the parser strips `\s` so pasted `₱1,000.00` and `₱1 000.00` both round-trip.
 
 ### 4.2  Dates
 
@@ -155,6 +156,7 @@ metro.config.js             .wasm registered as an asset so the web export bundl
 - Never place a BlurView inside another blurred surface.
 - `GlassSurface` is the single blurred primitive; list rows use plain translucent fills with hairline dividers.
 - Blur is disabled when: device API < 31 (Android), user toggles "Reduce transparency", or OS reports reduce-transparency.
+- **Bottom sheets mount only while open.** `@gorhom/bottom-sheet@5.2.14` keeps `DEFAULT_ENABLE_TOUCH_THROUGH=false`, so a sheet that stays mounted holds its backdrop at index −1 with `pointerEvents="auto"` and swallows every tap on the route. Render `{open ? <Sheet …/> : null}` (see `ItemSheet` in `grocery-list.tsx`, `FilterSheet`).
 
 ### 4.4  Text rendering
 
@@ -248,8 +250,9 @@ Release checklist:
    cd android
    $env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot"
    .\gradlew.bat assembleRelease
-   # then inspect the merged manifest:
-   Select-String -Path app\build\intermediates\merged_manifests\release\AndroidManifest.xml -Pattern "uses-permission"
+   # then inspect the merged manifest (note: the intermediate folder is
+   # `merged_manifest`, and the final file sits under the task directory):
+   Select-String -Path app\build\intermediates\merged_manifest\release\processReleaseMainManifest\AndroidManifest.xml -Pattern "uses-permission"
    ```
    Expected: `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `RECORD_AUDIO`
    and `SYSTEM_ALERT_WINDOW` are all absent (they carry `tools:node="remove"`).
@@ -278,7 +281,7 @@ does **not** replace the Android build as the release gate.
 | 3 | `276f8fb` | Groceries: lists, price memory, finish-trip |
 | 4 | `8b283a8` | Reports: period switcher, charts, insights, CSV |
 | 5 | `f4baab7` | Safety: backup/restore, app lock, notifications, recently deleted |
-| 6 | `2ab8c7f` → `7affc43` → `8d321a9` | Polish: dark mode, accessibility, hitSlop, keyboard handling; Matcha Night wired incl. per-screen backdrop |
+| 6 | `2ab8c7f` → `7affc43` → `8d321a9` → `5b0f74f` → `a99ede2` | Polish: dark mode, accessibility, hitSlop, keyboard handling; Matcha Night wired incl. per-screen backdrop; release hardening (blocked permissions, `eas.json`, JDK 21 build); Home layout compaction |
 
 ---
 

@@ -58,6 +58,10 @@ export default function AddExpenseSheetRoute() {
   const hide = useAddExpenseStore((state) => state.hide);
   const editingId = useAddExpenseStore((state) => state.editingId);
 
+  // Android back pops this route without going through `hide()` — clear the
+  // flag on unmount so the next open pushes a fresh route instead of no-op.
+  useEffect(() => () => useAddExpenseStore.getState().reset(), []);
+
   const sheetRef = useRef<BottomSheet>(null);
   const db = useDb();
   const currencySymbol = useSettingsStore((state) => state.currencySymbol);

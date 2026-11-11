@@ -287,10 +287,6 @@ export default function BudgetsScreen() {
           onPress={create}
           disabled={kind === 'custom' && endText < range.start}
         />
-
-        <AppText variant="caption" color={palette.textMuted}>
-          {formatShortDate(range.start)} – {formatShortDate(range.end)}
-        </AppText>
       </GlassSurface>
 
       <GlassSurface radius={20} padding={12} style={{ borderColor: glass.borderInner }}>

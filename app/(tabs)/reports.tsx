@@ -12,7 +12,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Share2 } from 'lucide-react-native';
-import { router } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 
@@ -25,6 +24,7 @@ import { GlassSegmented } from '../../src/components/glass/GlassSegmented';
 import { ProgressBar } from '../../src/components/ui/ProgressBar';
 import { useDbQuery } from '../../src/state/dbStore';
 import { useSettingsStore } from '../../src/state/settingsStore';
+import { openAddExpense } from '../../src/state/addExpenseStore';
 import {
   addDaysISO,
   eachDayInRange,
@@ -171,7 +171,7 @@ export default function ReportsScreen() {
           title="Nothing to report"
           message="Log a few expenses and the picture appears here — all computed on your phone."
           actionLabel="Add an expense"
-          onAction={() => router.push('/add-expense-sheet')}
+          onAction={() => openAddExpense()}
         />
       ) : (
         <>

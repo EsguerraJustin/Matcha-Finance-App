@@ -65,7 +65,7 @@ export default function GroceryListScreen() {
   const [itemSheetOpen, setItemSheetOpen] = useState(false);
   const itemSheetRef = useRef<BottomSheet>(null);
 
-  const { data: list } = useDbQuery((handle) => (id ? getGroceryList(handle, id) : Promise.resolve(null)), [id], null);
+  const { data: list, loading: listLoading } = useDbQuery((handle) => (id ? getGroceryList(handle, id) : Promise.resolve(null)), [id], null);
   const { data: items } = useDbQuery<GroceryItemRow[]>(
     (handle) => (id ? listGroceryItems(handle, id) : Promise.resolve([])),
     [id],
@@ -157,10 +157,10 @@ export default function GroceryListScreen() {
   }, [db, id, items, list?.name, list?.store]);
 
   if (!list) {
+    // `useDbQuery` starts as `null` + `loading` — the "gone" message may only
+    // appear once the read has actually settled, or it flashes on every open.
     return (
-      <ScreenScaffold title="Grocery list">
-        <EmptyList onBack={() => router.back()} />
-      </ScreenScaffold>
+      <ScreenScaffold title="Grocery list">{listLoading ? null : <EmptyList onBack={() => router.back()} />}</ScreenScaffold>
     );
   }
 
@@ -260,23 +260,28 @@ export default function GroceryListScreen() {
         <GlassButton label="Save as template" variant="ghost" onPress={() => void handleSaveAsTemplate()} />
       </ScreenScaffold>
 
-      <ItemSheet
-        ref={itemSheetRef}
-        open={itemSheetOpen}
-        onClose={() => setItemSheetOpen(false)}
-        memory={memory}
-        activeStore={list.store}
-        onSave={async (draft) => {
-          if (!db || !id) return;
-          const parsed = parseItemDraft(draft);
-          if (!parsed.ok) {
-            showToast({ message: parsed.error, tone: 'warning' });
-            return;
-          }
-          await addGroceryItem(db, id, parsed.value);
-          setItemSheetOpen(false);
-        }}
-      />
+      {/* Mounted only while open: a permanently-mounted sheet's backdrop
+          covers the screen with pointerEvents="auto" at index -1 and swallows
+          every tap on this route (FilterSheet mounts the same way). */}
+      {itemSheetOpen ? (
+        <ItemSheet
+          ref={itemSheetRef}
+          open={itemSheetOpen}
+          onClose={() => setItemSheetOpen(false)}
+          memory={memory}
+          activeStore={list.store}
+          onSave={async (draft) => {
+            if (!db || !id) return;
+            const parsed = parseItemDraft(draft);
+            if (!parsed.ok) {
+              showToast({ message: parsed.error, tone: 'warning' });
+              return;
+            }
+            await addGroceryItem(db, id, parsed.value);
+            setItemSheetOpen(false);
+          }}
+        />
+      ) : null}
     </>
   );
 }
