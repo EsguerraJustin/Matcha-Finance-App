@@ -25,6 +25,16 @@
   runway copy, goals shared-input state, Settings PIN keypad overflow).
   Font scale 130% checked and restored; README acceptance (Rice + Milk → one
   ₱195 Groceries expense) passed end-to-end.
+- **Extended UAT sweep** (untested screens, same emulator): four more flaws
+  found, fixed and re-verified on a rebuilt release APK — DECISIONS `P6-31`…
+  `P6-34`. Swipe sides were inverted (P6-31), the swipe icon escaped its
+  button (P6-32), the revealed Delete button never received a tap because
+  RNGH's hidden opposite container swallows touches on Android (P6-33, upstream
+  #3223), and every expense-creation path except the add sheet wrote
+  `budget_id = NULL`, so the budget card claimed "Nothing spent yet" while
+  Allowance counted the same spend (P6-34). Verified on device: swipe left →
+  Delete → 5→4 entries → Undo → 5; swipe right → Copy → 5→6; budget card now
+  reads ₱805.00 / 20%.
 - T1–T8 all done — including the icon/stroke audit (every remaining
   hard-coded `colors.*` is either resolved through `resolveTone()` or sits on
   a permanently-light surface such as a primary button or pastel chip) and

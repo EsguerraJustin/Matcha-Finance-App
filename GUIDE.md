@@ -44,6 +44,16 @@
 - `expo-file-system` SDK 57 API: `new File(…).copy(dest, { overwrite: true })`, `.text()`, `.write()`, `Directory(Paths.document, …)`.
 - `expo-notifications` triggers: `SchedulableTriggerInputTypes.DAILY|DATE` with `channelId`.
 - `babel.config.js` must keep `react-native-worklets/plugin` **last**.
+- `react-native-gesture-handler` `ReanimatedSwipeable` (2.32.0) — the **hidden
+  opposite action container swallows taps on Android**. Both action containers
+  are `StyleSheet.absoluteFill`, `rightElement` renders after `leftElement`
+  (so it sits on top in z-order), and the hidden side animates only `opacity`
+  — an opacity-0 view still receives touches. Upstream issue **#3223** (PR
+  #4192 unmerged). `app/(tabs)/history.tsx` therefore keeps **both** press
+  targets as `position: absolute` strips inside the *right* container: row
+  content covers them while closed, and each is exposed exactly when its own
+  side opens. Moving a target into the visually-revealed container makes it go
+  dead again — see DECISIONS `P6-33`.
 
 ### Environment notes
 
