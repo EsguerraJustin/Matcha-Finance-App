@@ -281,7 +281,7 @@ does **not** replace the Android build as the release gate.
 | 3 | `276f8fb` | Groceries: lists, price memory, finish-trip |
 | 4 | `8b283a8` | Reports: period switcher, charts, insights, CSV |
 | 5 | `f4baab7` | Safety: backup/restore, app lock, notifications, recently deleted |
-| 6 | `2ab8c7f` → `7affc43` → `8d321a9` → `5b0f74f` → `a99ede2` | Polish: dark mode, accessibility, hitSlop, keyboard handling; Matcha Night wired incl. per-screen backdrop; release hardening (blocked permissions, `eas.json`, JDK 21 build); Home layout compaction |
+| 6 | `2ab8c7f` → `7affc43` → `8d321a9` → `5b0f74f` → `a99ede2` → `1ce2b86` | Polish: dark mode, accessibility, hitSlop, keyboard handling; Matcha Night wired incl. per-screen backdrop; release hardening (blocked permissions, `eas.json`, JDK 21 build); Home layout compaction; on-device UAT flaw sweep (DECISIONS `P6-23`…`P6-30`) |
 
 ---
 

@@ -12,8 +12,9 @@
   pass (invisible-heading fix, navigator theme, per-screen backdrop) as
   `8d321a9`. The Phase 6 release pass followed: `5b0f74f` (block
   `SYSTEM_ALERT_WINDOW`, drop `edgeToEdgeEnabled`, add `eas.json`, document
-  the JDK 21 Gradle build) and `a99ede2` (compact Home so the empty-state CTA
-  clears the floating tab bar without scrolling).
+  the JDK 21 Gradle build), `a99ede2` (compact Home so the empty-state CTA
+  clears the floating tab bar without scrolling) and `1ce2b86` (on-device UAT
+  flaw sweep — DECISIONS `P6-23`…`P6-30`).
 - **Verification**: TypeScript 0 errors · Jest 157 passing · Android bundle
   exports (`npx expo export --platform android --no-bytecode`) · web export
   boots and renders all screens in Light and Matcha Night (Playwright).
