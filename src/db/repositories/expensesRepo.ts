@@ -12,6 +12,7 @@ import { newId } from '../../lib/id';
 import { nowTimestamp } from '../../lib/date';
 import { notifyDbChanged } from '../../state/dbStore';
 import { relinkListForExpense, reopenListForExpense } from './groceriesRepo';
+import { resolveBudgetId } from './budgetGlue';
 import { deleteReceipt } from '../../lib/receipts';
 
 export interface ExpenseRow {
@@ -171,6 +172,12 @@ export async function createExpense(db: DB, input: ExpenseInput): Promise<string
   const id = newId();
   const timestamp = nowTimestamp();
 
+  // Business rule 2 lives here, not in a screen: every creation path (sheet,
+  // one-tap add, History copy, recurring catch-up) attaches the budget whose
+  // period owns `spent_on`. An explicit `null` still means "deliberately
+  // unbudgeted", so only an omitted value triggers the lookup.
+  const budgetId = input.budget_id === undefined ? await resolveBudgetId(db, input.spent_on) : input.budget_id;
+
   await execute(
     db,
     `INSERT INTO expenses (
@@ -186,7 +193,7 @@ export async function createExpense(db: DB, input: ExpenseInput): Promise<string
       input.type_id ?? null,
       input.payment_method_id,
       input.note?.trim() || null,
-      input.budget_id ?? null,
+      budgetId,
       input.receipt_path ?? null,
       input.grocery_list_id ?? null,
       input.recurring_rule_id ?? null,

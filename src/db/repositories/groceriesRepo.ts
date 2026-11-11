@@ -13,6 +13,7 @@ import { newId } from '../../lib/id';
 import { nowTimestamp } from '../../lib/date';
 import { notifyDbChanged } from '../../state/dbStore';
 import { normalizeName } from '../../lib/id';
+import { resolveBudgetId } from './budgetGlue';
 import {
   buildItemisedNote,
   planFinishTrip,
@@ -278,6 +279,10 @@ export async function finishTrip(db: DB, input: FinishTripInput): Promise<Finish
   const list = await getGroceryList(db, input.listId);
   const note = buildItemisedNote(items);
 
+  // Business rule 2, same as every other creation path: the trip's expense
+  // belongs to the budget that owns its date.
+  const budgetId = await resolveBudgetId(db, input.spentOn);
+
   const result = await transaction(db, async () => {
     const expenseId = newId();
     const timestamp = nowTimestamp();
@@ -287,7 +292,7 @@ export async function finishTrip(db: DB, input: FinishTripInput): Promise<Finish
          id, amount_cents, spent_on, category_id, type_id, payment_method_id,
          note, budget_id, receipt_path, grocery_list_id, recurring_rule_id,
          created_at, updated_at, deleted_at
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, NULL, ?, ?, NULL);`,
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, NULL, ?, ?, NULL);`,
       [
         expenseId,
         plan.amountCents,
@@ -296,6 +301,7 @@ export async function finishTrip(db: DB, input: FinishTripInput): Promise<Finish
         input.groceryTypeId ?? null,
         input.paymentMethodId,
         note,
+        budgetId,
         input.listId,
         timestamp,
         timestamp,

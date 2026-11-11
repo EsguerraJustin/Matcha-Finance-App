@@ -322,31 +322,48 @@ function SwipeableRow({ expense, onOpen, onDelete, onDuplicate, onLongPress }: S
       leftThreshold={40}
       overshootRight={false}
       enableTrackpadTwoFingerGesture
-      renderRightActions={(progress, translation, methods: SwipeableMethods) => (
+      renderRightActions={(progress, _translation, methods: SwipeableMethods) => (
+        <>
+          <SwipeAction
+            icon={<Trash2 size={20} strokeWidth={1.75} color={palette.dangerText} />}
+            label="Delete"
+            labelColor={palette.dangerText}
+            background={palette.dangerBg}
+            progress={progress}
+          />
+          {/*
+            Press targets live in this (top) container on purpose: on Android
+            the hidden opposite container sits above in z-order and swallows
+            taps meant for revealed actions (react-native-gesture-handler
+            #3223). Both targets are absolute so they do not affect the width
+            RNGH measures for the swipe distance.
+          */}
+          <Pressable
+            onPress={() => {
+              methods.close();
+              onDuplicate();
+            }}
+            style={[styles.actionTarget, styles.actionTargetLeft]}
+            accessibilityRole="button"
+            accessibilityLabel="Copy"
+          />
+          <Pressable
+            onPress={() => {
+              methods.close();
+              onDelete();
+            }}
+            style={[styles.actionTarget, styles.actionTargetRight]}
+            accessibilityRole="button"
+            accessibilityLabel="Delete"
+          />
+        </>
+      )}
+      renderLeftActions={(progress) => (
         <SwipeAction
-          side="right"
           icon={<CopyPlus size={22} strokeWidth={1.75} color={palette.emphasis} />}
           label="Copy"
+          labelColor={palette.text}
           background={palette.cardFill}
-          onPress={() => {
-            methods.close();
-            onDuplicate();
-          }}
-          translation={translation}
-          progress={progress}
-        />
-      )}
-      renderLeftActions={(progress, translation, methods: SwipeableMethods) => (
-        <SwipeAction
-          side="left"
-          icon={<Trash2 size={20} strokeWidth={1.75} color={palette.dangerText} />}
-          label="Delete"
-          background={palette.dangerBg}
-          onPress={() => {
-            methods.close();
-            onDelete();
-          }}
-          translation={translation}
           progress={progress}
         />
       )}
@@ -357,37 +374,35 @@ function SwipeableRow({ expense, onOpen, onDelete, onDuplicate, onLongPress }: S
 }
 
 function SwipeAction({
-  side,
   icon,
   label,
+  labelColor,
   background,
-  onPress,
-  translation,
   progress,
 }: {
-  side: 'left' | 'right';
   icon: ReactNode;
   label: string;
+  labelColor: string;
   background: string;
-  onPress: () => void;
-  translation: SharedValue<number>;
   progress: SharedValue<number>;
 }) {
-  const palette = usePalette();
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: progress.value,
-    transform: [{ translateX: side === 'left' ? translation.value : -translation.value }],
   }));
 
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={[styles.action, { backgroundColor: background }]}>
+    <View
+      style={[styles.action, { backgroundColor: background }]}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
       <Animated.View style={animatedStyle}>
         {icon}
       </Animated.View>
-      <AppText variant="caption" color={side === 'left' ? palette.dangerText : palette.text}>
+      <AppText variant="caption" color={labelColor}>
         {label}
       </AppText>
-    </Pressable>
+    </View>
   );
 }
 
@@ -463,5 +478,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 2,
     paddingVertical: spacing.xs,
+  },
+  actionTarget: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionTargetLeft: {
+    left: 0,
+  },
+  actionTargetRight: {
+    right: 0,
   },
 });
