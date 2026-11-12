@@ -78,7 +78,10 @@ export async function listCategories(db: DB, options: { includeArchived?: boolea
       byCategory.set(row.id, category);
     }
 
-    if (row.t_id && (!options.includeArchived && row.t_archived !== 1)) {
+    // With `includeArchived`, show every type (archived ones muted by the UI);
+    // otherwise skip archived types — the old `!includeArchived && …` gate
+    // dropped *all* types whenever archived entries were requested.
+    if (row.t_id && (options.includeArchived || row.t_archived !== 1)) {
       category.types.push({
         id: row.t_id,
         category_id: row.id,
