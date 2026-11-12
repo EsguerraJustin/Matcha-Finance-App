@@ -18,6 +18,7 @@ import type { BottomTabBarProps } from 'expo-router/js-tabs';
 
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { openAddExpense } from '../../state/addExpenseStore';
+import { useSheetOverlayStore } from '../../state/sheetOverlayStore';
 import { colors } from '../../../theme/colors';
 import { layout, typeScale } from '../../../theme/typography';
 import { tapHaptic } from '../../lib/haptics';
@@ -43,6 +44,10 @@ export function tabOptionsFor(routeName: string): TabRouteMeta {
 
 function GlassTabBarImpl({ state, navigation, insets }: BottomTabBarProps) {
   const { glass, solidGlass, palette } = useAppTheme();
+  // A sheet presented inside a tab scene (History filters) would otherwise sit
+  // *under* this bar — the tab bar renders after the scenes, so its pill + orb
+  // cover the sheet's action row. Hide while such a sheet is open.
+  const overlayOpen = useSheetOverlayStore((s) => s.open);
 
   const handlePress = useCallback(
     (route: { key: string; name: string }, isFocused: boolean) => {
@@ -55,6 +60,8 @@ function GlassTabBarImpl({ state, navigation, insets }: BottomTabBarProps) {
   );
 
   const bottomInset = Math.max(insets.bottom, layout.tabBarFloat);
+
+  if (overlayOpen) return null;
 
   return (
     <View pointerEvents="box-none" style={[styles.root, { paddingBottom: bottomInset }]}>

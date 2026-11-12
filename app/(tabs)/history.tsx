@@ -9,7 +9,7 @@
  * hairline dividers, so 5,000+ rows stay smooth.
  */
 
-import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Pressable, SectionList, StyleSheet, View } from 'react-native';
 import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
 import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reanimated';
@@ -28,6 +28,7 @@ import { useAppTheme, usePalette } from '../../src/hooks/useAppTheme';
 import { useDb, useDbQuery } from '../../src/state/dbStore';
 import { showToast } from '../../src/state/toastStore';
 import { openAddExpense } from '../../src/state/addExpenseStore';
+import { useSheetOverlayStore } from '../../src/state/sheetOverlayStore';
 import { useSettingsStore } from '../../src/state/settingsStore';
 import {
   listCategories,
@@ -73,6 +74,14 @@ export default function HistoryScreen() {
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const filterSheetRef = useRef<BottomSheet>(null);
+
+  // The floating tab bar renders above tab scenes, so it would cover the
+  // sheet's Apply/Reset row (flaw #13) — hide it while the sheet is up.
+  const setSheetOverlayOpen = useSheetOverlayStore((s) => s.setOpen);
+  useEffect(() => {
+    setSheetOverlayOpen(filterSheetOpen);
+    return () => setSheetOverlayOpen(false);
+  }, [filterSheetOpen, setSheetOverlayOpen]);
 
   const { data: categories } = useDbQuery<CategoryWithTypes[]>((handle) => listCategories(handle), [], []);
   const { data: paymentMethods } = useDbQuery<PaymentMethod[]>((handle) => listPaymentMethods(handle), [], []);
