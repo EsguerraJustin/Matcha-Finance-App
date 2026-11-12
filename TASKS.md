@@ -38,6 +38,11 @@
   above the inline filter sheet, so Apply/Reset sat in a dead zone and filters
   could never be applied (P6-35, bar now hides while a scene sheet is open);
   verified: Food chip → Apply → "1 filter on" / 2 entries → Reset → 6 entries.
+  Tests 4–6 added flaws 14–15: the bulk action bar's Delete sat in the same
+  tab-bar dead zone (P6-36), and "Show archived items" made every category
+  report "0 types" (P6-37, plus regression test — suite now 159). Verified:
+  3 selected → Delete → 1 entry → Undo → 4; restore from Recently deleted →
+  History 4 → 5 entries; archived toggle shows real type counts.
 - T1–T8 all done — including the icon/stroke audit (every remaining
   hard-coded `colors.*` is either resolved through `resolveTone()` or sits on
   a permanently-light surface such as a primary button or pastel chip) and
