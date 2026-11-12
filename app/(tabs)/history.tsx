@@ -75,13 +75,14 @@ export default function HistoryScreen() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const filterSheetRef = useRef<BottomSheet>(null);
 
-  // The floating tab bar renders above tab scenes, so it would cover the
-  // sheet's Apply/Reset row (flaw #13) — hide it while the sheet is up.
+  // The floating tab bar renders above tab scenes, so it would cover
+  // in-scene overlays' controls: the filter sheet's Apply/Reset (flaw #13) and
+  // the bulk action bar's Delete (flaw #14) — hide it while either is up.
   const setSheetOverlayOpen = useSheetOverlayStore((s) => s.setOpen);
   useEffect(() => {
-    setSheetOverlayOpen(filterSheetOpen);
+    setSheetOverlayOpen(filterSheetOpen || selectedIds.length > 0);
     return () => setSheetOverlayOpen(false);
-  }, [filterSheetOpen, setSheetOverlayOpen]);
+  }, [filterSheetOpen, selectedIds.length, setSheetOverlayOpen]);
 
   const { data: categories } = useDbQuery<CategoryWithTypes[]>((handle) => listCategories(handle), [], []);
   const { data: paymentMethods } = useDbQuery<PaymentMethod[]>((handle) => listPaymentMethods(handle), [], []);
