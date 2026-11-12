@@ -34,7 +34,10 @@
   `budget_id = NULL`, so the budget card claimed "Nothing spent yet" while
   Allowance counted the same spend (P6-34). Verified on device: swipe left →
   Delete → 5→4 entries → Undo → 5; swipe right → Copy → 5→6; budget card now
-  reads ₱805.00 / 20%.
+  reads ₱805.00 / 20%. Test 3 added flaw 13 — the floating tab bar rendered
+  above the inline filter sheet, so Apply/Reset sat in a dead zone and filters
+  could never be applied (P6-35, bar now hides while a scene sheet is open);
+  verified: Food chip → Apply → "1 filter on" / 2 entries → Reset → 6 entries.
 - T1–T8 all done — including the icon/stroke audit (every remaining
   hard-coded `colors.*` is either resolved through `resolveTone()` or sits on
   a permanently-light surface such as a primary button or pastel chip) and

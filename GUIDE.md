@@ -54,6 +54,14 @@
   content covers them while closed, and each is exposed exactly when its own
   side opens. Moving a target into the visually-revealed container makes it go
   dead again — see DECISIONS `P6-33`.
+- **A sheet rendered inline inside a tab scene sits *under* the floating tab
+  bar.** `BottomTabView` renders the custom `tabBar` after the scenes, and
+  `GlassTabBar` has Android elevation 6/8 — its pill and Add orb cover the
+  sheet's bottom action row, and taps there hit the bar (tab switch / Add
+  sheet) instead of the sheet. Any future in-scene sheet must mirror its open
+  flag into `src/state/sheetOverlayStore.ts` (see `app/(tabs)/history.tsx`)
+  so `GlassTabBar` hides while it is up. Root-route sheets don't need this —
+  they push above the tab shell. See DECISIONS `P6-35`.
 
 ### Environment notes
 
