@@ -62,7 +62,17 @@
   must mirror its open flag into `src/state/sheetOverlayStore.ts` (see
   `app/(tabs)/history.tsx`, which does this for both the filter sheet and bulk
   selection) so `GlassTabBar` hides while it is up. Root-route sheets don't
-  need this — they push above the tab shell. See DECISIONS `P6-35`, `P6-36`.
+  need this — they push above the tab shell. **The flag must also clear when
+  the scene loses focus or back closes the overlay**: Android back popped the
+  History scene with the filter sheet still mounted, so `sheetOverlayStore.open`
+  stayed `true` and the bar disappeared app-wide until restart. Every overlay
+  now resolves back itself via `src/lib/backPress.ts` (`resolveOverlayBack`:
+  close sheet → clear selection → pass through; sheet wins), and `history.tsx`
+  clears both flags in a `useFocusEffect` cleanup on blur. Root-route sheets
+  (Add expense, grocery item) register their own `BackHandler` while open in
+  `GlassSheet` — back closes the sheet instead of popping the route. RN
+  `BackHandler` is LIFO, so register after navigation (i.e. inside the
+  component, not at module load). See DECISIONS `P6-35`, `P6-36`, `P6-38`.
 - **Boolean repo filters must not conflate the two conditions.**
   `listCategories` required `!includeArchived && !typeArchived`, so asking for
   archived rows dropped *all* types (`0 types` everywhere). The pattern is

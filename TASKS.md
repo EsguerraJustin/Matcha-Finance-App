@@ -43,6 +43,22 @@
   report "0 types" (P6-37, plus regression test — suite now 159). Verified:
   3 selected → Delete → 1 entry → Undo → 4; restore from Recently deleted →
   History 4 → 5 entries; archived toggle shows real type counts.
+- **Extended UAT continued (Tests 7–10) — sweep complete, factory-fresh end
+  state.** Tests 7–9 passed on device (receipt attach, notification/reminder
+  behaviour, backup export→erase→restore round-trip: History restored to
+  6 entries / ₱373.50 exactly). Test 10 (last) passed: Erase all data wiped
+  expenses, budgets, allowances, grocery lists and the backup marker ("No
+  backup yet"), then re-seeded defaults — History "No spending yet", Home
+  "No budget yet" / ₱0.00 cards, one-tap adds (Jeep, Coffee…) back, while
+  preferences survived (₱, Monday week start, Day 1, Light, Haptics, daily
+  reminder ON, app lock OFF). Flaw 16 was found and fixed mid-sweep: back on
+  the History filter sheet popped the scene with the sheet mounted, leaving
+  `sheetOverlayStore.open` stuck and the tab bar hidden app-wide until
+  restart (P6-38; `src/lib/backPress.ts` resolver + overlay `BackHandler`s +
+  blur cleanup; regression tests — suite now 163). Verified on rebuilt release
+  APK: sheet/selection back closes in place with tab bar visible, plain back
+  still switches tabs, Add-expense and grocery-item sheets close on back
+  without popping their routes.
 - T1–T8 all done — including the icon/stroke audit (every remaining
   hard-coded `colors.*` is either resolved through `resolveTone()` or sits on
   a permanently-light surface such as a primary button or pastel chip) and
