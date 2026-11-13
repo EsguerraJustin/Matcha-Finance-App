@@ -10,7 +10,8 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Pressable, SectionList, StyleSheet, View } from 'react-native';
+import { BackHandler, Pressable, SectionList, StyleSheet, View } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
 import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reanimated';
 import type BottomSheet from '@gorhom/bottom-sheet';
@@ -57,6 +58,7 @@ import {
   toggleInList,
   type FilterState,
 } from '../../src/lib/expenses';
+import { resolveOverlayBack } from '../../src/lib/backPress';
 import { endOfMonthISO, relativeDayLabel, todayISO, weekRangeISO, type WeekStart } from '../../src/lib/date';
 
 import { spacing } from '../../theme/typography';
@@ -83,6 +85,37 @@ export default function HistoryScreen() {
     setSheetOverlayOpen(filterSheetOpen || selectedIds.length > 0);
     return () => setSheetOverlayOpen(false);
   }, [filterSheetOpen, selectedIds.length, setSheetOverlayOpen]);
+
+  // Android back must close the topmost overlay instead of falling through
+  // to the tab navigator: switching tabs left the sheet open in this
+  // still-mounted scene, so the overlay flag stayed true and the floating
+  // tab bar disappeared app-wide until restart (flaw #16).
+  useEffect(() => {
+    if (!filterSheetOpen && selectedIds.length === 0) return undefined;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      const action = resolveOverlayBack({ sheetOpen: filterSheetOpen, selectionCount: selectedIds.length });
+      if (action === 'close-sheet') {
+        setFilterSheetOpen(false);
+        return true;
+      }
+      if (action === 'clear-selection') {
+        setSelectedIds([]);
+        return true;
+      }
+      return false;
+    });
+    return () => subscription.remove();
+  }, [filterSheetOpen, selectedIds.length]);
+
+  // Belt and braces: leaving History always clears any in-scene overlay, so
+  // a stale flag (e.g. a notification navigating away mid-sheet) can never
+  // keep the tab bar hidden (flaw #16).
+  useFocusEffect(
+    useCallback(() => () => {
+      setFilterSheetOpen(false);
+      setSelectedIds([]);
+    }, []),
+  );
 
   const { data: categories } = useDbQuery<CategoryWithTypes[]>((handle) => listCategories(handle), [], []);
   const { data: paymentMethods } = useDbQuery<PaymentMethod[]>((handle) => listPaymentMethods(handle), [], []);

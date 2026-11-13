@@ -8,8 +8,8 @@
  * rounded container so the blur follows the sheet's top corners.
  */
 
-import React, { forwardRef, useCallback, useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { BackHandler, StyleSheet, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 import BottomSheet, {
   BottomSheetBackdrop,
@@ -53,6 +53,38 @@ export const GlassSheet = forwardRef<BottomSheet, GlassSheetProps>(function Glas
 
   const points = useMemo(() => snapPoints ?? [DETENT_POINTS[detent]], [detent, snapPoints]);
 
+  // Whether the sheet is actually on screen. `@gorhom/bottom-sheet` does not
+  // handle the Android hardware back button, so without this the back press
+  // fell through to whatever sat underneath the sheet (the tab navigator on
+  // History — flaw #16) or popped the whole route (flaw #16 class).
+  const [open, setOpen] = useState(index >= 0);
+  useEffect(() => setOpen(index >= 0), [index]);
+
+  // Keep the latest onClose without re-subscribing the back listener on every
+  // parent render (parents pass inline arrows).
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  // A single close path shared by the backdrop/pan gestures and Android back:
+  // flip local state, then hand the close request to the parent (unmounting,
+  // animating the index to -1, or popping the route — whatever `onClose`
+  // does today).
+  const handleSheetClose = useCallback(() => {
+    setOpen(false);
+    onCloseRef.current?.();
+  }, []);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      handleSheetClose();
+      return true;
+    });
+    return () => subscription.remove();
+  }, [open, handleSheetClose]);
+
   const renderBackdrop = useCallback(
     (backdropProps: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
@@ -74,7 +106,7 @@ export const GlassSheet = forwardRef<BottomSheet, GlassSheetProps>(function Glas
       index={index}
       snapPoints={points}
       enablePanDownToClose
-      onClose={onClose}
+      onClose={handleSheetClose}
       onChange={onChange}
       backgroundStyle={styles.transparentBackground}
       handleComponent={() => (
