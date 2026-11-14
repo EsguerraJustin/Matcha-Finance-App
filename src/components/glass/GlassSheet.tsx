@@ -9,7 +9,7 @@
  */
 
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BackHandler, StyleSheet, View } from 'react-native';
+import { BackHandler, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 import BottomSheet, {
   BottomSheetBackdrop,
@@ -21,6 +21,7 @@ import BottomSheet, {
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { colors } from '../../../theme/colors';
 import { radius } from '../../../theme/typography';
+import { SheetFieldContext } from './sheetContext';
 
 export type GlassSheetDetent = 'medium' | 'large' | 'auto';
 
@@ -29,6 +30,13 @@ const DETENT_POINTS: Record<GlassSheetDetent, string> = {
   large: '92%',
   auto: 'auto',
 };
+
+/**
+ * `height` shrinks a scrollable sheet's viewport above the Android keyboard
+ * (the window never resizes under edge-to-edge); iOS relies on the sheet's own
+ * `interactive` keyboard lift, so the wrapper becomes a pass-through there.
+ */
+const avoidingBehavior = Platform.OS === 'android' ? ('height' as const) : undefined;
 
 export interface GlassSheetProps {
   children: React.ReactNode;
@@ -100,6 +108,20 @@ export const GlassSheet = forwardRef<BottomSheet, GlassSheetProps>(function Glas
 
   const Body = scrollable ? BottomSheetScrollView : BottomSheetView;
 
+  // Scrollable sheets shrink their viewport above the keyboard so the focused
+  // field scrolls into the visible area (the OS window itself never resizes
+  // under edge-to-edge). Non-scrollable sheets are short and top-aligned, so
+  // they just ride the sheet's own keyboard lift.
+  const body = scrollable ? (
+    <KeyboardAvoidingView style={styles.body} behavior={avoidingBehavior}>
+      <Body style={styles.bodyFill} contentContainerStyle={styles.bodyContent}>
+        {children}
+      </Body>
+    </KeyboardAvoidingView>
+  ) : (
+    <Body style={styles.body}>{children}</Body>
+  );
+
   return (
     <BottomSheet
       ref={ref}
@@ -108,6 +130,22 @@ export const GlassSheet = forwardRef<BottomSheet, GlassSheetProps>(function Glas
       enablePanDownToClose
       onClose={handleSheetClose}
       onChange={onChange}
+      // Lift the sheet above the keyboard when a field inside it is focused,
+      // and drop it back to the snap point when the keyboard closes. The lift
+      // only fires for inputs registered through `BottomSheetTextInput`
+      // (see SheetFieldContext in GlassInput).
+      keyboardBehavior="interactive"
+      keyboardBlurBehavior="restore"
+      // A horizontal drag now fails the sheet's own pan gesture, so chip rows
+      // and other horizontal ScrollViews inside the sheet receive the swipe
+      // instead of being swallowed. `activeOffsetY` must accompany it: RNGH's
+      // PanGestureHandler treats any fail/active offset as a *custom*
+      // activation criterion and resets its default `minDist` to MAX, so with
+      // failOffsetX alone the pan never activates and the sheet could not be
+      // dragged vertically at all. The pair reads: fail past ±10 px of
+      // horizontal travel, activate past ±10 px of vertical travel.
+      failOffsetX={[-10, 10]}
+      activeOffsetY={[-10, 10]}
       backgroundStyle={styles.transparentBackground}
       handleComponent={() => (
         <View style={styles.handleWrapper} accessibilityRole="adjustable" accessibilityLabel={title ?? 'Sheet'}>
@@ -116,19 +154,19 @@ export const GlassSheet = forwardRef<BottomSheet, GlassSheetProps>(function Glas
       )}
       backdropComponent={renderBackdrop}
     >
-      <View style={styles.sheet}>
-        <BlurView
-          intensity={glass.blurIntensity}
-          tint={glass.tint}
-          style={StyleSheet.absoluteFill}
-        />
-        <View style={[styles.fill, { backgroundColor: glass.fillStrong }]} />
-        <View style={[styles.border, { borderColor: glass.border }]} />
+      <SheetFieldContext.Provider value={true}>
+        <View style={styles.sheet}>
+          <BlurView
+            intensity={glass.blurIntensity}
+            tint={glass.tint}
+            style={StyleSheet.absoluteFill}
+          />
+          <View style={[styles.fill, { backgroundColor: glass.fillStrong }]} />
+          <View style={[styles.border, { borderColor: glass.border }]} />
 
-        <Body style={styles.body} contentContainerStyle={scrollable ? styles.bodyContent : undefined}>
-          {children}
-        </Body>
-      </View>
+          {body}
+        </View>
+      </SheetFieldContext.Provider>
     </BottomSheet>
   );
 });
@@ -158,6 +196,9 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth * 2,
   },
   body: {
+    flex: 1,
+  },
+  bodyFill: {
     flex: 1,
   },
   bodyContent: {

@@ -11,6 +11,7 @@ import { GlassCard } from '../src/components/glass/GlassCard';
 import { GlassSurface } from '../src/components/glass/GlassSurface';
 import { GlassButton } from '../src/components/glass/GlassButton';
 import { GlassInput } from '../src/components/ui/GlassInput';
+import { GlassDatePickerField } from '../src/components/ui/GlassDatePickerField';
 import { AppText, MoneyText } from '../src/components/ui/AppText';
 import { EmptyState } from '../src/components/ui/EmptyState';
 import { ScreenScaffold } from '../src/components/ui/ScreenScaffold';
@@ -265,10 +266,10 @@ export default function BudgetsScreen() {
           label="Amount"
         />
 
-        <GlassInput value={startText} onChangeText={setStartText} placeholder="YYYY-MM-DD" label="Starts" autoCapitalize="none" />
+        <GlassDatePickerField value={startText} onChange={setStartText} label="Starts" />
 
         {kind === 'custom' ? (
-          <GlassInput value={endText} onChangeText={setEndText} placeholder="YYYY-MM-DD" label="Ends" autoCapitalize="none" />
+          <GlassDatePickerField value={endText} onChange={setEndText} label="Ends" />
         ) : null}
 
         {kind === 'custom' && endText < range.start ? (

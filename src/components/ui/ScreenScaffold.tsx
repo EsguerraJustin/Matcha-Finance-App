@@ -7,7 +7,7 @@
  */
 
 import { memo, type ReactNode } from 'react';
-import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -19,6 +19,16 @@ import { useAppTheme } from '../../hooks/useAppTheme';
 import { spacing } from '../../../theme/typography';
 
 const AnimatedScrollView = Animated.ScrollView;
+
+/**
+ * Android's `windowSoftInputMode="adjustResize"` is inert under this app's
+ * edge-to-edge window (`gradle.properties: edgeToEdgeEnabled=true`), so the
+ * keyboard floats over the screen and covers the focused field. Shrinking the
+ * scroll viewport with `KeyboardAvoidingView` restores the resize ourselves;
+ * iOS keeps using `automaticallyAdjustKeyboardInsets` (an iOS-only prop) via
+ * the `undefined` behaviour, which is a no-op wrapper there.
+ */
+const keyboardBehavior = Platform.OS === 'android' ? ('height' as const) : undefined;
 
 export interface ScreenScaffoldProps {
   title: string;
@@ -57,19 +67,23 @@ function ScreenScaffoldImpl({
       <LargeTitleHeader title={title} subtitle={subtitle} accessory={accessory} scrollY={scrollY} />
 
       {scrollable ? (
-        <AnimatedScrollView
-          {...scrollProps}
-          style={styles.scroll}
-          contentContainerStyle={{ paddingBottom: TAB_BAR_INSET }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-          automaticallyAdjustKeyboardInsets
-        >
-          {content}
-        </AnimatedScrollView>
+        <KeyboardAvoidingView style={styles.scroll} behavior={keyboardBehavior}>
+          <AnimatedScrollView
+            {...scrollProps}
+            style={styles.scroll}
+            contentContainerStyle={{ paddingBottom: TAB_BAR_INSET }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            automaticallyAdjustKeyboardInsets
+          >
+            {content}
+          </AnimatedScrollView>
+        </KeyboardAvoidingView>
       ) : (
-        <View style={[styles.scroll, { paddingBottom: TAB_BAR_INSET }]}>{children}</View>
+        <KeyboardAvoidingView style={styles.scroll} behavior={keyboardBehavior}>
+          <View style={[styles.scroll, { paddingBottom: TAB_BAR_INSET }]}>{children}</View>
+        </KeyboardAvoidingView>
       )}
     </View>
   );

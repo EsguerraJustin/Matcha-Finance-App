@@ -14,6 +14,7 @@ import { GlassCard } from '../src/components/glass/GlassCard';
 import { GlassSurface } from '../src/components/glass/GlassSurface';
 import { GlassButton } from '../src/components/glass/GlassButton';
 import { GlassInput } from '../src/components/ui/GlassInput';
+import { GlassDatePickerField } from '../src/components/ui/GlassDatePickerField';
 import { AppText, MoneyText } from '../src/components/ui/AppText';
 import { EmptyState } from '../src/components/ui/EmptyState';
 import { ScreenScaffold } from '../src/components/ui/ScreenScaffold';
@@ -161,7 +162,7 @@ export default function GoalsScreen() {
         <AppText variant="headline">New goal</AppText>
         <GlassInput value={name} onChangeText={setName} placeholder="Laptop fund" label="Name" />
         <GlassInput value={targetText} onChangeText={setTargetText} placeholder="₱25,000" keyboardType="decimal-pad" label="Target" />
-        <GlassInput value={date} onChangeText={setDate} placeholder="YYYY-MM-DD (optional)" label="By" autoCapitalize="none" />
+        <GlassDatePickerField value={date} onChange={setDate} label="By" allowClear placeholder="Optional" />
         <AppText variant="footnote" color={palette.textMuted}>
           Colour
         </AppText>

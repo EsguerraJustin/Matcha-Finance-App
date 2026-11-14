@@ -3,11 +3,13 @@ import {
   budgetThreshold,
   currentHour,
   dailyAverageCents,
+  dateToISO,
   daysLeftInclusive,
   diffDaysISO,
   endOfMonthISO,
   endOfWeekISO,
   isValidISODate,
+  isoToLocalDate,
   monthRangeISO,
   projectedEndOfPeriodCents,
   relativeDayLabel,
@@ -48,6 +50,31 @@ describe('ISO date helpers', () => {
     expect(relativeDayLabel('2026-01-02', '2026-01-02')).toBe('Today');
     expect(relativeDayLabel('2026-01-01', '2026-01-02')).toBe('Yesterday');
     expect(relativeDayLabel('2025-12-30', '2026-01-02')).toMatch(/Dec/);
+  });
+});
+
+describe('isoToLocalDate (native date picker round trip)', () => {
+  it('parses a real date at local midnight', () => {
+    const date = isoToLocalDate('2026-11-13');
+    expect(date).not.toBeNull();
+    expect(date!.getFullYear()).toBe(2026);
+    expect(date!.getMonth()).toBe(10); // November, zero-based
+    expect(date!.getDate()).toBe(13);
+  });
+
+  it('round-trips through dateToISO', () => {
+    for (const iso of ['2026-01-01', '2026-02-28', '2024-02-29', '2026-12-31']) {
+      const date = isoToLocalDate(iso);
+      expect(date).not.toBeNull();
+      expect(dateToISO(date!)).toBe(iso);
+    }
+  });
+
+  it('rejects malformed and impossible dates', () => {
+    expect(isoToLocalDate('')).toBeNull();
+    expect(isoToLocalDate('13-11-2026')).toBeNull();
+    expect(isoToLocalDate('2026-13-01')).toBeNull();
+    expect(isoToLocalDate('2026-02-30')).toBeNull();
   });
 });
 

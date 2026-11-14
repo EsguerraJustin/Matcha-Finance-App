@@ -5,10 +5,12 @@
  * rule: no glass inside glass); this uses a plain translucent fill instead.
  */
 
-import React, { forwardRef, memo, useState } from 'react';
+import React, { forwardRef, memo, useContext, useState } from 'react';
 import { StyleSheet, TextInput, View, type StyleProp, type TextInputProps, type ViewStyle } from 'react-native';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 
 import { useAppTheme } from '../../hooks/useAppTheme';
+import { SheetFieldContext } from '../glass/sheetContext';
 import { radius, typeScale } from '../../../theme/typography';
 import { AppText } from './AppText';
 
@@ -26,7 +28,28 @@ function GlassInputImpl(
   const { glass, palette } = useAppTheme();
   const [focused, setFocused] = useState(false);
 
+  // Inside `<GlassSheet />` the input must register with gorhom's keyboard
+  // state (BottomSheetTextInput), or the sheet never learns the keyboard is
+  // up and the fields stay covered.
+  const inSheet = useContext(SheetFieldContext);
+
   const borderColor = error ? palette.dangerText : focused ? palette.primary : glass.border;
+
+  const sharedProps: TextInputProps = {
+    ...rest,
+    onFocus: (event) => {
+      setFocused(true);
+      onFocus?.(event);
+    },
+    onBlur: (event) => {
+      setFocused(false);
+      onBlur?.(event);
+    },
+    placeholderTextColor: palette.textMuted,
+    selectionColor: palette.primary,
+    maxFontSizeMultiplier: 1.3,
+    style: [styles.input, { color: palette.text }, style],
+  };
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -46,22 +69,14 @@ function GlassInputImpl(
           },
         ]}
       >
-        <TextInput
-          ref={ref}
-          {...rest}
-          onFocus={(event) => {
-            setFocused(true);
-            onFocus?.(event);
-          }}
-          onBlur={(event) => {
-            setFocused(false);
-            onBlur?.(event);
-          }}
-          placeholderTextColor={palette.textMuted}
-          selectionColor={palette.primary}
-          maxFontSizeMultiplier={1.3}
-          style={[styles.input, { color: palette.text }, style]}
-        />
+        {inSheet ? (
+          <BottomSheetTextInput
+            ref={ref as unknown as React.Ref<React.ElementRef<typeof BottomSheetTextInput>>}
+            {...sharedProps}
+          />
+        ) : (
+          <TextInput ref={ref} {...sharedProps} />
+        )}
       </View>
 
       {error ? (

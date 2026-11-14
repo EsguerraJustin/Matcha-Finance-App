@@ -57,6 +57,21 @@ export function isValidISODate(value: string): boolean {
   return !Number.isNaN(date.getTime()) && dateToISO(date) === value;
 }
 
+/**
+ * Parse `YYYY-MM-DD` into a **local**-midnight `Date`.
+ *
+ * Native date pickers read year/month/day off the local getters of the value
+ * they are handed, so the round trip must happen in local time — unlike
+ * `isoToDate`, which anchors at UTC midnight for calendar arithmetic.
+ * Returns `null` for anything that is not a real calendar date.
+ */
+export function isoToLocalDate(iso: ISODate): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!match) return null;
+  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  return Number.isNaN(date.getTime()) || dateToISO(date) !== iso ? null : date;
+}
+
 export function addDaysISO(iso: ISODate, days: number): ISODate {
   return dateToISO(addDays(isoToDate(iso), days));
 }

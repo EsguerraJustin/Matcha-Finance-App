@@ -14,6 +14,7 @@ import { GlassCard } from '../src/components/glass/GlassCard';
 import { GlassSurface } from '../src/components/glass/GlassSurface';
 import { GlassButton } from '../src/components/glass/GlassButton';
 import { GlassInput } from '../src/components/ui/GlassInput';
+import { GlassDatePickerField } from '../src/components/ui/GlassDatePickerField';
 import { AppText, MoneyText } from '../src/components/ui/AppText';
 import { EmptyState } from '../src/components/ui/EmptyState';
 import { ScreenScaffold } from '../src/components/ui/ScreenScaffold';
@@ -151,7 +152,7 @@ export default function AllowanceScreen() {
         <AppText variant="headline">Add allowance</AppText>
         <GlassInput value={amountText} onChangeText={setAmountText} placeholder="₱3,000" keyboardType="decimal-pad" label="Amount" />
         <GlassInput value={source} onChangeText={setSource} placeholder="Parents, scholarship, side gig…" label="Source" />
-        <GlassInput value={receivedOn} onChangeText={setReceivedOn} placeholder="YYYY-MM-DD" label="Received on" autoCapitalize="none" />
+        <GlassDatePickerField value={receivedOn} onChange={setReceivedOn} label="Received on" />
         <GlassInput value={notes} onChangeText={setNotes} placeholder="Optional note" label="Notes" />
         <GlassSegmented options={RECUR_OPTIONS} value={recur} onChange={setRecur} />
         <GlassButton label="Add" onPress={add} />

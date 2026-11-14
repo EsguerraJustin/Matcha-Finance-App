@@ -14,6 +14,7 @@ import { GlassCard } from '../src/components/glass/GlassCard';
 import { GlassSurface } from '../src/components/glass/GlassSurface';
 import { GlassButton } from '../src/components/glass/GlassButton';
 import { GlassInput } from '../src/components/ui/GlassInput';
+import { GlassDatePickerField } from '../src/components/ui/GlassDatePickerField';
 import { AppText, MoneyText } from '../src/components/ui/AppText';
 import { EmptyState } from '../src/components/ui/EmptyState';
 import { ScreenScaffold } from '../src/components/ui/ScreenScaffold';
@@ -194,7 +195,7 @@ export default function RecurringScreen() {
           When it is due
         </AppText>
         <GlassSegmented options={MODES} value={mode} onChange={setMode} />
-        <GlassInput value={nextDueOn} onChangeText={setNextDueOn} placeholder="YYYY-MM-DD" label="Next due" autoCapitalize="none" />
+        <GlassDatePickerField value={nextDueOn} onChange={setNextDueOn} label="Next due" />
 
         <AppText variant="footnote" color={palette.textMuted}>
           Category
