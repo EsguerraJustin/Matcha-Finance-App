@@ -182,6 +182,7 @@ metro.config.js             .wasm registered as an asset so the web export bundl
 - Calendar dates are **`YYYY-MM-DD` strings in Asia/Manila**, derived via `Intl.DateTimeFormat`.
 - Timestamps are ISO-8601 UTC strings.
 - All helpers live in `src/lib/date.ts` — never use `new Date().toISOString().slice(0,10)`.
+- Date **inputs** are never free text: use `GlassDatePickerField` (`src/components/ui/GlassDatePickerField.tsx`) — native calendar dialog on Android, compact picker on iOS, `allowClear` for optional dates. It takes/returns the same `YYYY-MM-DD` string; `isoToLocalDate` in `date.ts` converts for the picker.
 
 ### 4.3  Glass budget
 
@@ -314,7 +315,7 @@ does **not** replace the Android build as the release gate.
 | 3 | `276f8fb` | Groceries: lists, price memory, finish-trip |
 | 4 | `8b283a8` | Reports: period switcher, charts, insights, CSV |
 | 5 | `f4baab7` | Safety: backup/restore, app lock, notifications, recently deleted |
-| 6 | `2ab8c7f` → `7affc43` → `8d321a9` → `5b0f74f` → `a99ede2` → `1ce2b86` | Polish: dark mode, accessibility, hitSlop, keyboard handling; Matcha Night wired incl. per-screen backdrop; release hardening (blocked permissions, `eas.json`, JDK 21 build); Home layout compaction; on-device UAT flaw sweep (DECISIONS `P6-23`…`P6-30`) |
+| 6 | `2ab8c7f` → `7affc43` → `8d321a9` → `5b0f74f` → `a99ede2` → `1ce2b86` → `7c384b4` → `3164d38` → `21f8a30` → `27a99a7` → `0fe7d62` → `e5da3dd` | Polish: dark mode, accessibility, hitSlop, keyboard handling; Matcha Night wired incl. per-screen backdrop; release hardening (blocked permissions, `eas.json`, JDK 21 build); Home layout compaction; on-device UAT flaw sweep (DECISIONS `P6-23`…`P6-30`); extended UAT fixes — swipe sides/icon, dead delete tap, budget attachment (`P6-31`…`P6-34`); tab bar hidden during in-scene sheets + bulk selection, archived types filter (`P6-35`…`P6-37`); Android back per-overlay resolver (flaw 16, `P6-38`); screenshot flaw sweep — keyboard avoidance, sheet chip swipes, native date pickers (flaws 17–19, `P6-39`…`P6-41`) |
 
 ---
 
@@ -327,6 +328,9 @@ does **not** replace the Android build as the release gate.
 | Opaque per-screen backdrop | `src/components/ui/ScreenScaffold.tsx` + `BackdropLayers` in `src/components/glass/AuroraBackground.tsx` |
 | Transparent navigator theme | `app/_layout.tsx` → `ThemeProvider` + `DefaultTheme`/`DarkTheme` overridden (`background`, `card`) |
 | Glass accessibility resolution | `src/hooks/useAppTheme.ts` |
+| Keyboard avoidance (screens + sheets) | `src/components/ui/ScreenScaffold.tsx` (KAV `height`) · `src/components/glass/GlassSheet.tsx` (`keyboardBehavior="interactive"`, `SheetFieldContext` → `BottomSheetTextInput`) |
+| Sheet pan vs. chip swipes | `src/components/glass/GlassSheet.tsx` → `failOffsetX` + `activeOffsetY` (must be paired — see DECISIONS `P6-40`) |
+| Date input fields | `src/components/ui/GlassDatePickerField.tsx` · `isoToLocalDate` in `src/lib/date.ts` |
 | Boot sequence | `app/_layout.tsx` → `src/db/boot.ts` |
 | Notification scheduling | `src/lib/notifications.ts` (stable IDs, cancel-before-schedule) |
 | Backup format | `src/lib/backupFormat.ts` (pure) · `src/lib/backup.ts` (FS+SQLite I/O) |

@@ -59,6 +59,22 @@
   APK: sheet/selection back closes in place with tab bar visible, plain back
   still switches tabs, Add-expense and grocery-item sheets close on back
   without popping their routes.
+- **Screenshot flaw sweep (flaws 17–19) — six reports from the user's real
+  phone, three fixes, all verified on the release APK.** Flaw 17: the keyboard
+  covered fields on every screen — fixed app-wide with explicit Android
+  `KeyboardAvoidingView` avoidance in `ScreenScaffold` + `GlassSheet`
+  (interactive lift, `BottomSheetTextInput` in sheets; P6-39). Flaw 18: chip
+  rows inside sheets couldn't be swiped ("yung nasa dulo hindi ko na kita") —
+  fixed with `failOffsetX` on the sheet pan, which then exposed a regression
+  (RNGH resets `minDist` to MAX on any custom criterion, killing vertical
+  sheet drags) fixed by pairing `activeOffsetY` (P6-40). Flaw 19: raw
+  `YYYY-MM-DD` inputs on budgets Starts/Ends, allowance Received on, recurring
+  Next due and goals By — replaced with a native calendar picker
+  (`GlassDatePickerField`, same string contract; P6-41). Gates green (tsc 0,
+  jest 166). Emulator verification: all 5 date fields pick + update, goals
+  Clear works, keyboard lift on screens/sheets/grocery sheet with typing,
+  chip swipes on screen and in the add-expense sheet, sheet handle drag
+  closes, BACK closes sheets cleanly with no test data saved.
 - T1–T8 all done — including the icon/stroke audit (every remaining
   hard-coded `colors.*` is either resolved through `resolveTone()` or sits on
   a permanently-light surface such as a primary button or pastel chip) and
