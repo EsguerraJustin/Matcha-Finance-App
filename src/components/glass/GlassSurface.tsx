@@ -83,7 +83,10 @@ function GlassSurfaceImpl({
 
       {sheen && !solidGlass ? (
         <LinearGradient
-          colors={['rgba(255,255,255,0.50)', 'rgba(255,255,255,0.0)']}
+          // The brief's original 0.50 white read as a grey smear across dark
+          // glass (every card looked smudged diagonally); keep the gloss but
+          // tint-aware — a hint on dark, a real shine on light.
+          colors={[`rgba(255,255,255,${tokens.tint === 'dark' ? 0.12 : 0.28})`, 'rgba(255,255,255,0.0)']}
           start={{ x: 0.1, y: 0 }}
           end={{ x: 0.6, y: 1 }}
           style={[styles.sheen, { borderTopLeftRadius: cornerRadius, borderTopRightRadius: cornerRadius }]}

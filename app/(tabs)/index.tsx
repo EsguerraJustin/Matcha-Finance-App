@@ -8,10 +8,10 @@
  * Everything shown is derived from SQLite at read time — nothing is cached.
  */
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { MoreHorizontal } from 'lucide-react-native';
-import { router } from 'expo-router';
+import { MoreHorizontal, Plus } from 'lucide-react-native';
+import { router, useFocusEffect } from 'expo-router';
 
 import { GlassCard } from '../../src/components/glass/GlassCard';
 import { GlassSurface } from '../../src/components/glass/GlassSurface';
@@ -21,14 +21,17 @@ import { EmptyState } from '../../src/components/ui/EmptyState';
 import { ProgressRing } from '../../src/components/ui/ProgressRing';
 import { ProgressBar } from '../../src/components/ui/ProgressBar';
 import { ExpenseRow } from '../../src/components/expense/ExpenseRow';
+import { QuickTemplateSheet } from '../../src/components/QuickTemplateSheet';
 import { withAlpha } from '../../src/components/glass/GlassChip';
 import { useDb, useDbQuery } from '../../src/state/dbStore';
 import { openAddExpense } from '../../src/state/addExpenseStore';
 import { showToast } from '../../src/state/toastStore';
 import { useSettingsStore } from '../../src/state/settingsStore';
+import { useSheetOverlayStore } from '../../src/state/sheetOverlayStore';
 import { budgetCopy, budgetSummary } from '../../src/lib/budgets';
 import { formatMonthLabel, monthRangeISO, relativeDayLabel, todayISO } from '../../src/lib/date';
 import { ratio } from '../../src/lib/money';
+import { selectionHaptic } from '../../src/lib/haptics';
 import { getCurrentBudget, type BudgetWithTotals } from '../../src/db/repositories/budgetsRepo';
 import { allowanceOverview } from '../../src/db/repositories/allowancesRepo';
 import { createExpense, listRecentExpenses, type ExpenseRow as ExpenseRowModel } from '../../src/db/repositories/expensesRepo';
@@ -58,6 +61,19 @@ export default function HomeScreen() {
   const { data: favorites } = useDbQuery<QuickTemplateRow[]>((handle) => listQuickTemplates(handle), [], []);
   const { data: rules } = useDbQuery((handle) => listRecurringRules(handle), [], []);
   const { data: setAside } = useDbQuery((handle) => totalSetAside(handle), [], 0);
+
+  // The one-tap add sheet is an in-scene overlay: the floating tab bar renders
+  // above tab scenes, so it must hide while the sheet is up (P6-35 rule, same
+  // as History's filter sheet) and close if Home ever loses focus (P6-38).
+  const [templateSheet, setTemplateSheet] = useState<QuickTemplateRow | 'new' | null>(null);
+  const setSheetOverlayOpen = useSheetOverlayStore((s) => s.setOpen);
+  useEffect(() => {
+    setSheetOverlayOpen(templateSheet !== null);
+    return () => setSheetOverlayOpen(false);
+  }, [templateSheet, setSheetOverlayOpen]);
+  useFocusEffect(
+    useCallback(() => () => setTemplateSheet(null), []),
+  );
 
   const bills = useMemo(() => upcomingBills(rules, today, 7).slice(0, 4), [rules, today]);
 
@@ -159,30 +175,54 @@ export default function HomeScreen() {
       </View>
 
       {/* 3 — quick-add favourites ------------------------------------ */}
-      {favorites.length ? (
-        <View style={styles.section}>
-          <AppText variant="headline">One-tap adds</AppText>
-          <View style={styles.favoriteRow}>
-            {favorites.map((template) => (
-              <Pressable
-                key={template.id}
-                onPress={() => void addFavorite(template)}
-                accessibilityRole="button"
-                accessibilityLabel={`Add ${template.label}`}
-                style={({ pressed }) => [styles.favorite, { transform: [{ scale: pressed ? 0.96 : 1 }] }]}
-              >
-                <GlassSurface radius={20} padding={8} style={styles.favoriteSurface}>
-                  <View style={[styles.favoriteDot, { backgroundColor: withAlpha(categoryTint(template.category_name), 0.9) }]} />
-                  <AppText variant="caption" color={colors.matcha900} numberOfLines={1}>
-                    {template.label}
-                  </AppText>
-                  <MoneyText cents={template.amount_cents} variant="caption" />
-                </GlassSurface>
-              </Pressable>
-            ))}
-          </View>
+      <View style={styles.section}>
+        <AppText variant="headline">One-tap adds</AppText>
+        <View style={styles.favoriteRow}>
+          {favorites.map((template) => (
+            <Pressable
+              key={template.id}
+              onPress={() => void addFavorite(template)}
+              onLongPress={() => {
+                selectionHaptic();
+                setTemplateSheet(template);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={`Add ${template.label}`}
+              accessibilityHint="Long press to edit or remove this one-tap add"
+              style={({ pressed }) => [styles.favorite, { transform: [{ scale: pressed ? 0.96 : 1 }] }]}
+            >
+              <GlassSurface radius={20} padding={8} style={styles.favoriteSurface}>
+                <View style={[styles.favoriteDot, { backgroundColor: withAlpha(categoryTint(template.category_name), 0.9) }]} />
+                <AppText variant="caption" color={colors.matcha900} numberOfLines={1}>
+                  {template.label}
+                </AppText>
+                <MoneyText cents={template.amount_cents} variant="caption" />
+              </GlassSurface>
+            </Pressable>
+          ))}
+
+          {/* Create tile — dashed so it reads as "add your own". */}
+          <Pressable
+            onPress={() => setTemplateSheet('new')}
+            accessibilityRole="button"
+            accessibilityLabel="New one-tap add"
+            accessibilityHint="Saves a new quick chip to this row"
+            style={({ pressed }) => [styles.favorite, { transform: [{ scale: pressed ? 0.96 : 1 }] }]}
+          >
+            <View style={[styles.addTile, { borderColor: withAlpha(palette.emphasis, 0.35) }]}>
+              <Plus size={20} strokeWidth={2} color={palette.textMuted} />
+              <AppText variant="caption" color={palette.textMuted}>
+                Add
+              </AppText>
+            </View>
+          </Pressable>
         </View>
-      ) : null}
+        <AppText variant="caption" color={palette.textMuted}>
+          {favorites.length
+            ? 'Long-press a chip to edit or remove.'
+            : 'Save your usual spends — one tap logs them.'}
+        </AppText>
+      </View>
 
       {/* 4 — warning / alert banner ---------------------------------- */}
       {summary && summary.threshold !== 'ok' ? (
@@ -264,6 +304,8 @@ export default function HomeScreen() {
           Set an allowance and a budget to see safe-to-spend.
         </AppText>
       )}
+
+      {templateSheet ? <QuickTemplateSheet mode={templateSheet} onClose={() => setTemplateSheet(null)} /> : null}
     </ScreenScaffold>
   );
 }
@@ -322,11 +364,25 @@ const styles = StyleSheet.create({
   },
   favorite: {
     flexGrow: 1,
-    minWidth: 104,
+    // 80 dp keeps four chips + the dashed Add tile on a single row (353 dp
+    // content width), so the extra wrapped row can't push the empty-state CTA
+    // and footnote under the tab bar (P6-22).
+    minWidth: 80,
   },
   favoriteSurface: {
     alignItems: 'flex-start',
     gap: 4,
+  },
+  addTile: {
+    minHeight: 70,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
   favoriteDot: {
     width: 16,

@@ -74,13 +74,18 @@ function GlassTabBarImpl({ state, navigation, insets }: BottomTabBarProps) {
           />
         )}
         <View style={[StyleSheet.absoluteFill, { backgroundColor: glass.fillStrong }]} />
-        <LinearGradient
-          colors={['rgba(255,255,255,0.45)', 'rgba(255,255,255,0)']}
-          start={{ x: 0.1, y: 0 }}
-          end={{ x: 0.6, y: 1 }}
-          style={styles.sheen}
-          pointerEvents="none"
-        />
+        {/* Sheen must never paint in solid mode: with "Reduce transparency" on
+            it used to wash the bar's top half white — brightest on the left,
+            so a grey block sat behind the active tab (P6-43). */}
+        {solidGlass ? null : (
+          <LinearGradient
+            colors={[`rgba(255,255,255,${glass.tint === 'dark' ? 0.14 : 0.3})`, 'rgba(255,255,255,0)']}
+            start={{ x: 0.1, y: 0 }}
+            end={{ x: 0.6, y: 1 }}
+            style={styles.sheen}
+            pointerEvents="none"
+          />
+        )}
 
         {state.routes.map((route, index) => {
           const focused = state.index === index;
