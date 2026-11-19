@@ -190,6 +190,7 @@ metro.config.js             .wasm registered as an asset so the web export bundl
 - Never place a BlurView inside another blurred surface.
 - `GlassSurface` is the single blurred primitive; list rows use plain translucent fills with hairline dividers.
 - Blur is disabled when: device API < 31 (Android), user toggles "Reduce transparency", or OS reports reduce-transparency.
+- **Sheens are tint-aware and never over an opaque fill.** `GlassSurface`'s diagonal sheen sits at 0.12 (dark) / 0.28 (light) — never the old untinted 0.50, which read as a grey band across the card. `GlassTabBar` skips its sheen entirely while `solidGlass` (Reduce transparency) is on, because a "highlight" over a solid pastel is just a grey block behind the active tab. Orb/button sheens are exempt (they are accents, not fills). See DECISIONS `P6-43`.
 - **Bottom sheets mount only while open.** `@gorhom/bottom-sheet@5.2.14` keeps `DEFAULT_ENABLE_TOUCH_THROUGH=false`, so a sheet that stays mounted holds its backdrop at index −1 with `pointerEvents="auto"` and swallows every tap on the route. Render `{open ? <Sheet …/> : null}` (see `ItemSheet` in `grocery-list.tsx`, `FilterSheet`).
 
 ### 4.4  Text rendering
@@ -331,6 +332,7 @@ does **not** replace the Android build as the release gate.
 | Keyboard avoidance (screens + sheets) | `src/components/ui/ScreenScaffold.tsx` (KAV `height`) · `src/components/glass/GlassSheet.tsx` (`keyboardBehavior="interactive"`, `SheetFieldContext` → `BottomSheetTextInput`) |
 | Sheet pan vs. chip swipes | `src/components/glass/GlassSheet.tsx` → `failOffsetX` + `activeOffsetY` (must be paired — see DECISIONS `P6-40`) |
 | Date input fields | `src/components/ui/GlassDatePickerField.tsx` · `isoToLocalDate` in `src/lib/date.ts` |
+| One-tap adds (Home quick templates) | `app/(tabs)/index.tsx` (Add tile + long-press) → `src/components/QuickTemplateSheet.tsx` (create/edit/remove, toast-confirm delete) → `src/db/repositories/quickTemplatesRepo.ts` |
 | Boot sequence | `app/_layout.tsx` → `src/db/boot.ts` |
 | Notification scheduling | `src/lib/notifications.ts` (stable IDs, cancel-before-schedule) |
 | Backup format | `src/lib/backupFormat.ts` (pure) · `src/lib/backup.ts` (FS+SQLite I/O) |

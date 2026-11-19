@@ -15,7 +15,7 @@
   the JDK 21 Gradle build), `a99ede2` (compact Home so the empty-state CTA
   clears the floating tab bar without scrolling) and `1ce2b86` (on-device UAT
   flaw sweep — DECISIONS `P6-23`…`P6-30`).
-- **Verification**: TypeScript 0 errors · Jest 157 passing · Android bundle
+- **Verification**: TypeScript 0 errors · Jest 174 passing · Android bundle
   exports (`npx expo export --platform android --no-bytecode`) · web export
   boots and renders all screens in Light and Matcha Night (Playwright).
 - **Release-hardening UAT sweep** (on-device, emulator 1080×2340): eight flaws
@@ -75,6 +75,16 @@
   Clear works, keyboard lift on screens/sheets/grocery sheet with typing,
   chip swipes on screen and in the add-expense sheet, sheet handle drag
   closes, BACK closes sheets cleanly with no test data saved.
+- **One-tap adds + glass sheen pass** (user report: "asan yung feature na pwede
+  mag dagdag ng one tap add" + "ang pangit ng transparency, kala mo may hati"):
+  Home now renders a dashed **Add** tile and a long-press edit/remove sheet
+  (`src/components/QuickTemplateSheet.tsx`, toast-confirm delete, overlay +
+  focus handling; DECISIONS `P6-42`), `favorite` `minWidth` 104→80 keeps four
+  chips + tile on one row so the empty-state CTA clears the tab bar, and the
+  sheen is toned down / skipped in solid mode (`P6-43`). New tests
+  `__tests__/quickTemplates.test.ts` (8). Gates green (tsc 0, jest 174).
+  Verified on a rebuilt release APK: create/edit/remove persisted across
+  restart and reboot, single-row layout, seam-free cards with blur on.
 - T1–T8 all done — including the icon/stroke audit (every remaining
   hard-coded `colors.*` is either resolved through `resolveTone()` or sits on
   a permanently-light surface such as a primary button or pastel chip) and
