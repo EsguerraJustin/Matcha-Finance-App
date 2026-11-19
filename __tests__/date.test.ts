@@ -8,6 +8,7 @@ import {
   diffDaysISO,
   endOfMonthISO,
   endOfWeekISO,
+  formatClockTime,
   isValidISODate,
   isoToLocalDate,
   monthRangeISO,
@@ -219,5 +220,22 @@ describe('budget math (brief Section 9)', () => {
   it('computes a daily average without dividing by zero', () => {
     expect(dailyAverageCents(70000, 2)).toBe(35000);
     expect(dailyAverageCents(70000, 0)).toBe(0);
+  });
+});
+
+describe('formatClockTime', () => {
+  it('renders stored 24-hour times as 12-hour labels', () => {
+    expect(formatClockTime('18:00')).toBe('6:00 PM');
+    expect(formatClockTime('20:00')).toBe('8:00 PM');
+    expect(formatClockTime('21:30')).toBe('9:30 PM');
+    expect(formatClockTime('07:05')).toBe('7:05 AM');
+    expect(formatClockTime('00:15')).toBe('12:15 AM');
+    expect(formatClockTime('12:00')).toBe('12:00 PM');
+  });
+
+  it('passes malformed values through untouched', () => {
+    expect(formatClockTime('')).toBe('');
+    expect(formatClockTime('9:30')).toBe('9:30');
+    expect(formatClockTime('noon')).toBe('noon');
   });
 });

@@ -9,7 +9,8 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Switch, View } from 'react-native';
+import { Alert, Platform, Pressable, StyleSheet, Switch, View } from 'react-native';
+import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import * as Notifications from 'expo-notifications';
 import { ChevronRight } from 'lucide-react-native';
 import { router } from 'expo-router';
@@ -26,11 +27,30 @@ import { notifyDbChanged, useDb } from '../../src/state/dbStore';
 import { showToast } from '../../src/state/toastStore';
 import { seedPerfExpenses } from '../../src/db/seedPerf';
 import { scheduleDailyReminder } from '../../src/lib/notifications';
+import { formatClockTime } from '../../src/lib/date';
 import { biometricAvailable, removePin, savePin, validPin } from '../../src/lib/appLock';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/typography';
 
 const CURRENCIES = ['₱', '$', '€', 'Rp', 'RM'];
+
+/** Quick picks for the daily reminder; anything else comes from the time picker. */
+const DELIVERY_PRESETS: Array<{ value: string; label: string }> = [
+  { value: '18:00', label: '6 PM' },
+  { value: '20:00', label: '8 PM' },
+  { value: '21:30', label: '9:30 PM' },
+];
+
+/** Sentinel segment that opens the picker instead of writing a time. */
+const CUSTOM_SEGMENT = '__custom__';
+
+/** `HH:MM` → a Date today at that clock time (what the picker wants). */
+function pickerDate(hhmm: string): Date {
+  const [h, m] = hhmm.split(':').map(Number);
+  const d = new Date();
+  d.setHours(Number.isFinite(h) ? h : 20, Number.isFinite(m) ? m : 0, 0, 0);
+  return d;
+}
 
 export default function SettingsScreen() {
   const settings = useSettingsStore();
@@ -39,6 +59,7 @@ export default function SettingsScreen() {
   const { glass, solidGlass, isDark, palette } = useAppTheme();
   const [pinDraft, setPinDraft] = useState('');
   const [biometric, setBiometric] = useState(false);
+  const [timePickerOpen, setTimePickerOpen] = useState(false);
 
   useEffect(() => {
     void biometricAvailable().then(setBiometric);
@@ -78,6 +99,38 @@ export default function SettingsScreen() {
     if (granted) await scheduleDailyReminder(settings.dailyReminderTime);
     else showToast({ message: 'Notifications are off for Matcha Wallet.', tone: 'warning' });
   }, [settings.dailyReminderTime, update]);
+
+  /** Persists a preset or a picker-chosen time and re-schedules if the toggle is on. */
+  const applyReminderTime = useCallback(
+    (value: string) => {
+      void update({ dailyReminderTime: value });
+      if (settings.notificationsEnabled) void scheduleDailyReminder(value);
+    },
+    [settings.notificationsEnabled, update],
+  );
+
+  const handleTimePickerChange = useCallback(
+    (event: DateTimePickerEvent, selected?: Date) => {
+      if (event.type === 'set' && selected) {
+        const hh = String(selected.getHours()).padStart(2, '0');
+        const mm = String(selected.getMinutes()).padStart(2, '0');
+        applyReminderTime(`${hh}:${mm}`);
+      }
+      setTimePickerOpen(false);
+    },
+    [applyReminderTime],
+  );
+
+  const handleDeliverySegment = useCallback(
+    (value: string) => {
+      if (value === CUSTOM_SEGMENT) {
+        setTimePickerOpen(true);
+        return;
+      }
+      applyReminderTime(value);
+    },
+    [applyReminderTime],
+  );
 
   const handleSeedPerf = useCallback(() => {
     if (!db) return;
@@ -185,7 +238,7 @@ export default function SettingsScreen() {
       <Group title="Reminders">
         <ToggleRow
           label="Daily reminder"
-          hint={settings.notificationsEnabled ? `Every day at ${settings.dailyReminderTime}` : 'Off'}
+          hint={settings.notificationsEnabled ? `Every day at ${formatClockTime(settings.dailyReminderTime)}` : 'Off'}
           value={settings.notificationsEnabled}
           onChange={(value) => {
             if (value) void handleReminderTime();
@@ -195,16 +248,27 @@ export default function SettingsScreen() {
         <Row label="Delivery time">
           <GlassSegmented
             options={[
-              { value: '18:00', label: '6 PM' },
-              { value: '20:00', label: '8 PM' },
-              { value: '21:30', label: '9:30 PM' },
+              ...DELIVERY_PRESETS,
+              {
+                value: CUSTOM_SEGMENT,
+                label: DELIVERY_PRESETS.some((p) => p.value === settings.dailyReminderTime)
+                  ? 'Custom'
+                  : formatClockTime(settings.dailyReminderTime),
+              },
             ]}
-            value={settings.dailyReminderTime}
-            onChange={(value) => {
-              void update({ dailyReminderTime: value });
-              if (settings.notificationsEnabled) void scheduleDailyReminder(value);
-            }}
+            value={DELIVERY_PRESETS.some((p) => p.value === settings.dailyReminderTime)
+              ? settings.dailyReminderTime
+              : CUSTOM_SEGMENT}
+            onChange={handleDeliverySegment}
           />
+          {timePickerOpen ? (
+            <DateTimePicker
+              value={pickerDate(settings.dailyReminderTime)}
+              mode="time"
+              display={Platform.OS === 'android' ? 'clock' : 'compact'}
+              onChange={handleTimePickerChange}
+            />
+          ) : null}
         </Row>
         <Row label="Backup reminder" hint="Local notification only">
           <GlassSegmented

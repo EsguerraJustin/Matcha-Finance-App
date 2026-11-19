@@ -72,6 +72,21 @@ export function isoToLocalDate(iso: ISODate): Date | null {
   return Number.isNaN(date.getTime()) || dateToISO(date) !== iso ? null : date;
 }
 
+/**
+ * `HH:MM` (24-hour storage format) → a 12-hour label such as `7:15 PM`.
+ * Falls back to the raw string when it is not `HH:MM`, so a bad stored value
+ * never crashes a settings row.
+ */
+export function formatClockTime(hhmm: string): string {
+  const match = /^(\d{2}):(\d{2})$/.exec(hhmm);
+  if (!match) return hhmm;
+  const hour = Number(match[1]);
+  const minute = match[2];
+  const suffix = hour >= 12 ? 'PM' : 'AM';
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${hour12}:${minute} ${suffix}`;
+}
+
 export function addDaysISO(iso: ISODate, days: number): ISODate {
   return dateToISO(addDays(isoToDate(iso), days));
 }
