@@ -15,7 +15,7 @@
   the JDK 21 Gradle build), `a99ede2` (compact Home so the empty-state CTA
   clears the floating tab bar without scrolling) and `1ce2b86` (on-device UAT
   flaw sweep — DECISIONS `P6-23`…`P6-30`).
-- **Verification**: TypeScript 0 errors · Jest 174 passing · Android bundle
+- **Verification**: TypeScript 0 errors · Jest 176 passing · Android bundle
   exports (`npx expo export --platform android --no-bytecode`) · web export
   boots and renders all screens in Light and Matcha Night (Playwright).
 - **Release-hardening UAT sweep** (on-device, emulator 1080×2340): eight flaws
@@ -85,6 +85,16 @@
   `__tests__/quickTemplates.test.ts` (8). Gates green (tsc 0, jest 174).
   Verified on a rebuilt release APK: create/edit/remove persisted across
   restart and reboot, single-row layout, seam-free cards with blur on.
+- **Editable Delivery time** (user: "make it editable… presets of time, and
+  also a time picker"): the three time presets now sit beside a **Custom**
+  segment that opens the native clock picker and writes back `HH:MM`
+  (re-scheduling the daily notification when the toggle is on); when the
+  stored time isn't a preset the segment shows it (e.g. `4:22 PM`). New
+  `formatClockTime` helper renders the hint as `Every day at 6:00 PM`
+  (DECISIONS `P6-44`, +2 tests). Gates green (tsc 0, jest 176). Verified on
+  a rebuilt release APK: picker pre-filled from current value, 4:22 PM applied
+  and persisted across a cold restart, preset tap reverts the label, Daily
+  reminder toggle restored off afterwards.
 - T1–T8 all done — including the icon/stroke audit (every remaining
   hard-coded `colors.*` is either resolved through `resolveTone()` or sits on
   a permanently-light surface such as a primary button or pastel chip) and

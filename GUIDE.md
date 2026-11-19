@@ -183,6 +183,7 @@ metro.config.js             .wasm registered as an asset so the web export bundl
 - Timestamps are ISO-8601 UTC strings.
 - All helpers live in `src/lib/date.ts` — never use `new Date().toISOString().slice(0,10)`.
 - Date **inputs** are never free text: use `GlassDatePickerField` (`src/components/ui/GlassDatePickerField.tsx`) — native calendar dialog on Android, compact picker on iOS, `allowClear` for optional dates. It takes/returns the same `YYYY-MM-DD` string; `isoToLocalDate` in `date.ts` converts for the picker.
+- Times use the same rule: Settings → Delivery time keeps preset segments plus a **Custom** segment that mounts `DateTimePicker` (`mode="time"`) and stores `HH:MM` (see DECISIONS `P6-44`); `formatClockTime` in `date.ts` renders stored times as 12-hour labels.
 
 ### 4.3  Glass budget
 
